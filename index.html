@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지권 문제 투자 (모둠전) - 실시간 멀티 디바이스 웹앱</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Firebase SDK (ES5/ES6 호환 LTS 버전 8.10.1) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .font-title {
+            font-family: 'Gowun Dodum', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .glow-effect {
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
+        }
+        .badge-glow {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="p-3 md:p-5 flex flex-col justify-between min-h-screen">
+
+    <header class="glass-panel rounded-2xl p-3.5 mb-3 flex flex-wrap justify-between items-center shadow-lg border-b border-indigo-500/20">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600/30 p-2.5 rounded-xl border border-indigo-400/30 text-indigo-400 text-xl">
+                <i class="fa-solid fa-mountain fa-bounce" style="--fa-animation-duration: 4s;"></i>
+            </div>
+            <div>
+                <h1 class="text-lg md:text-xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-300 to-emerald-300 font-title">
+                    지권 문제 투자 <span id="gameModeBadgeHeader" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-400/30 font-sans">모둠전</span>
+                </h1>
+                <p class="text-xs text-slate-400">중2 과학 [지구계, 지권의 층상 구조, 암석과 광물] 모둠별 게이미피케이션 수업 도구</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 mt-2 sm:mt-0">
+            <div id="roomPinBadge" class="hidden px-3 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono font-bold text-sm">
+                📌 PIN: <span id="pinDisplay" class="text-base font-black">---</span>
+            </div>
+            <button id="soundToggleBtn" onclick="toggleSound()" class="px-3 py-1.5 rounded-xl glass-panel text-slate-300 hover:text-white hover:bg-slate-700/50 transition text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-volume-high text-indigo-400" id="soundIcon"></i>
+                <span id="soundText" class="hidden sm:inline">효과음 ON</span>
+            </button>
+            <button onclick="exitToHome()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-house"></i>
+                <span class="hidden sm:inline">메인으로</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="appContainer" class="flex-grow flex flex-col justify-center">
+        <!-- JavaScript로 동적 화면 전환 -->
+    </main>
+
+    <footer class="mt-4 text-center text-xs text-slate-500 py-1.5 border-t border-slate-800/60">
+        수업디자인 연수 오전 강의용 | 중학교 2학년 과학 [지권 문제 투자 시스템 - 모둠전]
+    </footer>
+
+    <div id="rescueQuizModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-900/90 border-2 border-emerald-500/50 rounded-3xl p-6 md:p-8 max-w-lg w-full glow-effect relative space-y-4">
+            <div class="flex items-center gap-3 text-emerald-400">
+                <i class="fa-solid fa-building-columns text-3xl animate-pulse"></i>
+                <div>
+                    <h3 class="text-xl font-bold font-title text-emerald-300" id="rescueQuizTitle">대출 심사 개념 퀴즈</h3>
+                    <span class="text-xs text-emerald-400/90 font-semibold" id="loanRateSubtitle">희망 대출 액수를 선택하고 퀴즈를 맞추세요!</span>
+                </div>
+            </div>
+            <hr class="border-slate-700/60">
+            
+            <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-3">
+                <div class="text-xs text-amber-400 font-bold"><i class="fa-solid fa-circle-question"></i> 개념 확인 문제</div>
+                <p class="text-sm font-semibold text-slate-100" id="rescueQuizStatement">
+                    지표면 근처에서 마그마가 빨리 식어서 만들어진 화산암은 결정의 크기가 작다. (O/X)
+                </p>
+            </div>
+
+            <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+                <div class="flex justify-between items-center text-xs text-slate-300">
+                    <span class="font-bold text-slate-300"><i class="fa-solid fa-hand-holding-dollar text-amber-400 mr-1"></i>희망 대출 신청 금액:</span>
+                    <span id="requestedLoanDisplay" class="text-amber-300 font-black text-base">50 pt</span>
+                </div>
+                <input type="range" id="requestedLoanRange" min="10" max="500" step="10" value="50" data-rate="1.1" oninput="updateLoanEstimate(this.value)" class="w-full accent-amber-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                <p class="text-[11px] text-amber-300/90 font-medium">
+                    ⚠️ 상환 이율: <span id="currentLoanRateBadge" class="font-bold text-amber-400">110%</span> (상환 시 <span id="repaymentEstimateDisplay" class="font-bold text-amber-300">55</span> pt가 부채로 청구됩니다)
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-1">
+                <button onclick="submitRescueAnswer(true)" class="py-3.5 rounded-2xl font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 text-base transition">
+                    ⭕ O (그렇다)
+                </button>
+                <button onclick="submitRescueAnswer(false)" class="py-3.5 rounded-2xl font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-400 text-base transition">
+                    ❌ X (아니다)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.gameState = {
+            role: null,
+            roomId: null,
+            myTeamId: null,
+            roomData: null,
+            soundEnabled: true,
+            setupCount: 5
+        };
+
+        window.clientLocalInput = {
+            choice: null,
+            bid: 10
+        };
+
+        window.db = null;
+        window.auth = null;
+        window.roomUnsubscribe = null;
+        window.hostPingInterval = null;
+        window.appId = 'earth-strata-investment-team';
+
+        var resolveAuthPromise;
+        window.authReady = new Promise(function(resolve) {
+            resolveAuthPromise = resolve;
+        });
+
+        window.getRoomDocRef = function(pin) {
+            if (!window.db) return null;
+            return window.db.collection('artifacts').doc(window.appId).collection('public').doc('data').collection('rooms').doc(pin);
+        };
+
+        window.questionBank = [
+            { 
+                id: 1, 
+                type: "ox",
+                category: "지구계", 
+                statement: "1. 지구를 둘러싸고 있는 대기와 그 공간에 존재하는 태양, 달 등의 천체들을 기권이라고 한다.", 
+                answer: "X",
+                explanation: "정답: X | 지구를 둘러싼 대기는 기권이지만, 태양이나 달 등 우주 공간의 천체들은 '외권'에 속합니다." 
+            },
+            { 
+                id: 2, 
+                type: "choice",
+                category: "지권의 층상 구조", 
+                statement: "2. 지권의 층상 구조에 대한 설명으로 옳지 않은 것은?", 
+                options: [
+                    "지권은 4개의 층으로 된 층상 구조로 이루어져 있다.",
+                    "지권의 가장 바깥쪽에 있는 층을 지각이라고 한다.",
+                    "지권의 가장 많은 부피를 차지하는 층은 맨틀이다.",
+                    "내핵은 지권 내부구조 중 유일하게 액체 상태로 추정된다."
+                ],
+                answer: 4,
+                explanation: "정답: ④번 | 지권 내부 구조 중 유일하게 액체 상태로 추정되는 층은 '외핵'입니다. 내핵은 고체 상태입니다." 
+            },
+            { 
+                id: 3, 
+                type: "short",
+                category: "암석과 광물", 
+                statement: "3. 지각을 이루는 암석 중 마그마가 지표로 분출하여 빠르게 식어 생성된 암석을 무엇이라 하는가?", 
+                answer: "화산암",
+                acceptedAnswers: ["화산암"],
+                explanation: "정답: 화산암 | 마그마가 지표면 근처에서 빠르게 식어 굳어진 암석을 '화산암'이라고 부릅니다." 
+            },
+            { 
+                id: 4, 
+                type: "ox",
+                category: "암석과 광물", 
+                statement: "4. 마그마가 지하 깊은 곳에서 천천히 식어 만들어진 심성암의 경우 결정의 크기가 작다.", 
+                answer: "X",
+                explanation: "정답: X | 심성암은 지하 깊은 곳에서 천천히 식어 광물 결정이 충분히 자라므로 결정(알갱이)의 크기가 큽니다." 
+            },
+            { 
+                id: 5, 
+                type: "choice",
+                category: "변성암", 
+                statement: "5. 다음 중 변성암에서 나타날 수 있는 특징은?", 
+                options: [
+                    "엽리",
+                    "층리",
+                    "화석"
+                ],
+                answer: 1,
+                explanation: "정답: ①번 (엽리) | 엽리는 높은 열과 압력을 받아 광물이 눌려 생기는 변성암의 특징입니다. (층리와 화석은 퇴적암의 특징)" 
+            },
+            { 
+                id: 6, 
+                type: "short",
+                category: "풍화 작용", 
+                statement: "6. 암석이 오랜 시간 동안 물, 공기, 생물 등의 작용으로 작게 부서지거나 성분이 변하는 현상을 무엇이라 하는가?", 
+                answer: "풍화",
+                acceptedAnswers: ["풍화", "풍화작용", "풍화 작용"],
+                explanation: "정답: 풍화 (또는 풍화 작용) | 암석이 물, 공기, 생물 등의 작용으로 잘게 부서지거나 성분이 변하는 현상입니다." 
+            },
+            { 
+                id: 7, 
+                type: "choice",
+                category: "토양의 형성", 
+                statement: "7. 토양을 4개의 층으로 구분할 때, 빗물에 녹은 물질과 진흙 등이 쌓인 층의 이름은?", 
+                options: [
+                    "표토",
+                    "심토",
+                    "모질물",
+                    "기반암"
+                ],
+                answer: 2,
+                explanation: "정답: ②번 (심토) | 표토에서 빗물에 녹은 물질과 고운 진흙 등이 아래로 씻겨 내려와 쌓여 형성된 층은 '심토'입니다." 
+            },
+            { 
+                id: 8, 
+                type: "choice",
+                category: "대륙이동설", 
+                statement: "8. 대륙이동설에 대한 설명으로 옳지 않은 것은?", 
+                options: [
+                    "독일의 기상학자 베게너가 주장하였다.",
+                    "과거에 한 덩어리였던 커다란 대륙이 분리되고 이동하여 오늘날과 같은 분포를 이루게 되었다.",
+                    "산맥의 분포, 빙하의 흔적 등을 증거로 제시하였다.",
+                    "대륙이동설은 대륙을 움직이는 힘까지 설명함으로써 인정받았다."
+                ],
+                answer: 4,
+                explanation: "정답: ④번 | 베게너는 대륙이 이동하는 원동력(힘)을 제대로 설명하지 못해 당시에는 학계의 인정을 받지 못했습니다." 
+            },
+            { 
+                id: 9, 
+                type: "ox",
+                category: "판 구조론", 
+                statement: "9. 화산대와 지진대의 분포는 판의 경계와 완전히 일치한다.", 
+                answer: "X",
+                explanation: "정답: X | 화산대와 지진대는 판의 경계와 '대체로' 일치하지만, 판 내부에서도 지진/화산이 일어나므로 '완전히 일치'하지는 않습니다." 
+            }
+        ];
+
+        window.checkQuestionCorrectness = function(q, userChoice) {
+            if (!userChoice) return false;
+            if (q.type === 'ox') {
+                return (userChoice.toString().toUpperCase() === q.answer.toUpperCase());
+            } else if (q.type === 'choice') {
+                return (parseInt(userChoice) === parseInt(q.answer));
+            } else if (q.type === 'short') {
+                var cleanUser = userChoice.toString().trim().replace(/\s+/g, '');
+                if (q.acceptedAnswers && q.acceptedAnswers.length > 0) {
+                    return q.acceptedAnswers.some(function(ans) {
+                        return ans.trim().replace(/\s+/g, '').toLowerCase() === cleanUser.toLowerCase();
+                    });
+                }
+                return cleanUser.toLowerCase() === q.answer.trim().replace(/\s+/g, '').toLowerCase();
+            }
+            return false;
+        };
+
+        window.formatChoiceDisplay = function(q, val) {
+            if (!val) return '-';
+            if (q.type === 'ox') {
+                return val === 'O' ? '⭕ O' : '❌ X';
+            } else if (q.type === 'choice') {
+                return val + '번';
+            } else if (q.type === 'short') {
+                return '✍️ ' + val;
+            }
+            return val;
+        };
+
+        window.showToast = function(msg) {
+            var toast = document.getElementById('toastMessage');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toastMessage';
+                toast.className = 'fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-amber-600 text-white font-bold px-5 py-3 rounded-2xl shadow-2xl border border-amber-400 text-sm transition-all duration-300 opacity-0 pointer-events-none flex items-center gap-2';
+                document.body.appendChild(toast);
+            }
+            toast.innerHTML = '<i class="fa-solid fa-circle-info"></i> <span>' + msg + '</span>';
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(function() {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3200);
+        };
+
+        window.playSound = function(type) {
+            if (!window.gameState.soundEnabled) return;
+            try {
+                var AudioCtx = window.AudioContext || window.webkitAudioContext;
+                var audioCtx = new AudioCtx();
+                var osc = audioCtx.createOscillator();
+                var gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                var now = audioCtx.currentTime;
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(160, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                }
+            } catch (e) {}
+        };
+
+        window.toggleSound = function() {
+            window.gameState.soundEnabled = !window.gameState.soundEnabled;
+            document.getElementById('soundText').innerText = window.gameState.soundEnabled ? '효과음 ON' : '효과음 OFF';
+            document.getElementById('soundIcon').className = window.gameState.soundEnabled ? 'fa-solid fa-volume-high text-amber-400' : 'fa-solid fa-volume-xmark text-slate-500';
+        };
+
+        window.exitToHome = function() {
+            if (window.hostPingInterval) clearInterval(window.hostPingInterval);
+            
+            if (window.gameState.role === 'host' && window.db && window.gameState.roomId) {
+                window.getRoomDocRef(window.gameState.roomId).update({ hostActive: false });
+            }
+
+            if (window.roomUnsubscribe) {
+                window.roomUnsubscribe();
+                window.roomUnsubscribe = null;
+            }
+
+            window.gameState.role = null;
+            window.gameState.roomId = null;
+            document.getElementById('roomPinBadge').classList.add('hidden');
+            window.renderRoleSelection();
+            window.showToast("메인 화면으로 돌아왔습니다.");
+        };
+
+        window.initApp = async function() {
+            try {
+                if (typeof firebase !== 'undefined') {
+                    var firebaseConfig = {
+                        apiKey: "AIzaSyCqnfjj_gyBZ3EEVOXJurhvsihlFj_emtE",
+                        authDomain: "investment-9eab1.firebaseapp.com",
+                        projectId: "investment-9eab1",
+                        storageBucket: "investment-9eab1.firebasestorage.app",
+                        messagingSenderId: "976762188659",
+                        appId: "1:976762188659:web:1bac8684b9c38c573ccb06",
+                        measurementId: "G-QEZ41GM2Y6"
+                    };
+
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    window.auth = firebase.auth();
+                    window.db = firebase.firestore();
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await window.auth.signInWithCustomToken(__initial_auth_token);
+                    } else {
+                        await window.auth.signInAnonymously();
+                    }
+                }
+            } catch (err) {
+                console.warn("Firebase 초기화 중 경고:", err);
+            } finally {
+                if (resolveAuthPromise) resolveAuthPromise();
+            }
+
+            var savedPin = localStorage.getItem('earth_strata_team_host_pin');
+            if (savedPin && window.db) {
+                try {
+                    var docSnap = await window.getRoomDocRef(savedPin).get();
+                    if (docSnap.exists) {
+                        await window.reconnectHostRoom(savedPin);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Auto reconnect failed:", e);
+                }
+            }
+
+            window.renderRoleSelection();
+        };
+
+        window.renderRoleSelection = function() {
+            var savedPin = localStorage.getItem('earth_strata_team_host_pin');
+            var container = document.getElementById('appContainer');
+
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+                    <div class="glass-panel rounded-3xl p-6 md:p-8 glow-effect flex flex-col justify-between space-y-6 border border-amber-500/30 hover:border-amber-400 transition">
+                        <div class="space-y-4">
+                            <div class="w-14 h-14 rounded-2xl bg-amber-600/30 border border-amber-400/40 text-amber-300 flex items-center justify-center text-2xl">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-black font-title text-amber-100">🖥️ 교사 화면 (전면 스크린)</h2>
+                                <p class="text-xs text-slate-300 mt-1">전자칠판에 방 PIN을 띄우고, 각 모둠의 실시간 문제 투자를 제어합니다.</p>
+                            </div>
+
+                            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700/60 space-y-3">
+                                <div class="text-xs font-bold text-amber-300 flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-users-rectangle"></i> 학급 모둠 수 설정</span>
+                                    <span class="text-[11px] text-slate-400">5모둠 / 6모둠 등 선택</span>
+                                </div>
+                                <div class="grid grid-cols-5 gap-1.5">
+                                    <button type="button" onclick="window.selectHostTeamCount(4)" id="tcBtn_4" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition">4모둠</button>
+                                    <button type="button" onclick="window.selectHostTeamCount(5)" id="tcBtn_5" class="py-2 rounded-xl text-xs font-bold border border-amber-400 bg-amber-500/20 text-amber-300 transition shadow">5모둠</button>
+                                    <button type="button" onclick="window.selectHostTeamCount(6)" id="tcBtn_6" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition">6모둠</button>
+                                    <button type="button" onclick="window.selectHostTeamCount(7)" id="tcBtn_7" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition">7모둠</button>
+                                    <button type="button" onclick="window.selectHostTeamCount(8)" id="tcBtn_8" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition">8모둠</button>
+                                </div>
+                                <input type="hidden" id="selectedTeamCount" value="5">
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <button onclick="setupHostRoom()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-2xl shadow-lg transition font-title text-base flex items-center justify-center gap-2">
+                                <span id="createRoomBtnText">새 교사 투자방 생성하기 (1~5모둠)</span>
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+
+                            <hr class="border-slate-800/80 my-2">
+
+                            <div class="bg-amber-950/20 border border-amber-500/40 p-3.5 rounded-2xl space-y-2">
+                                <label class="block text-xs font-bold text-amber-300 flex items-center gap-1">
+                                    <i class="fa-solid fa-rotate-left"></i> 기존 방 PIN 번호로 교사 재접속
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="number" id="hostReconnectPinInput" placeholder="방 PIN 4자리" maxlength="4" class="w-1/2 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-center font-mono font-bold text-amber-300 focus:outline-none focus:border-amber-400 text-sm">
+                                    <button onclick="reconnectHostByInputPin()" class="w-1/2 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl transition text-xs flex items-center justify-center gap-1 shadow">
+                                        <span>교사 재입장</span>
+                                        <i class="fa-solid fa-right-to-bracket"></i>
+                                    </button>
+                                </div>
+                                ${savedPin ? `
+                                    <button onclick="reconnectHostRoom('${savedPin}')" class="w-full py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold rounded-xl transition text-xs flex items-center justify-center gap-1.5">
+                                        <span>최근 방 (PIN: ${savedPin}) 바로 복구</span>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel rounded-3xl p-6 md:p-8 glow-effect flex flex-col justify-between space-y-6 border border-emerald-500/30 hover:border-emerald-400 transition">
+                        <div class="space-y-4">
+                            <div class="w-14 h-14 rounded-2xl bg-emerald-600/30 border border-emerald-400/40 text-emerald-300 flex items-center justify-center text-2xl">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-black font-title text-emerald-100">📱 모둠 기기 접속</h2>
+                                <p class="text-xs text-slate-300 mt-1">교사가 생성한 4자리 PIN 번호를 입력하고 소속 모둠을 선택하세요.</p>
+                            </div>
+                            
+                            <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-700/60 space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 mb-1">방 PIN 번호 (4자리)</label>
+                                    <input type="text" id="joinPinInput" placeholder="예: 1842" maxlength="4" oninput="checkPinAndLoadTeams()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-center text-lg font-mono font-black text-amber-300 focus:outline-none focus:border-emerald-400">
+                                    <div id="pinCheckStatus" class="text-[11px] mt-1 text-slate-400 text-center font-bold">PIN 번호 4자리를 입력해주세요</div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 mb-1">내 모둠 선택</label>
+                                    <select id="joinTeamSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-200 focus:outline-none focus:border-emerald-400">
+                                        <option value="">PIN 번호를 먼저 입력하세요</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="joinClientRoom()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black rounded-2xl shadow-lg transition font-title text-base flex items-center justify-center gap-2">
+                            <span>모둠 문제 투자 참여하기</span>
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.selectHostTeamCount = function(count) {
+            playSound('click');
+            var input = document.getElementById('selectedTeamCount');
+            if (input) input.value = count;
+
+            [4, 5, 6, 7, 8].forEach(function(num) {
+                var btn = document.getElementById('tcBtn_' + num);
+                if (btn) {
+                    if (num === count) {
+                        btn.className = "py-2 rounded-xl text-xs font-bold border border-amber-400 bg-amber-500/20 text-amber-300 transition shadow";
+                    } else {
+                        btn.className = "py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition";
+                    }
+                }
+            });
+
+            var btnText = document.getElementById('createRoomBtnText');
+            if (btnText) {
+                btnText.innerText = `새 교사 투자방 생성하기 (1~${count}모둠)`;
+            }
+        };
+
+        window.startHostHeartbeat = function(pin) {
+            if (window.hostPingInterval) clearInterval(window.hostPingInterval);
+
+            window.hostPingInterval = setInterval(function() {
+                if (window.gameState.role === 'host' && window.db) {
+                    window.getRoomDocRef(pin).update({
+                        hostActive: true,
+                        lastHostPing: Date.now()
+                    }).catch(function(err) {
+                        console.warn("Heartbeat update error:", err);
+                    });
+                }
+            }, 3000);
+
+            window.addEventListener('beforeunload', function() {
+                if (window.gameState.role === 'host' && window.db && window.gameState.roomId) {
+                    window.getRoomDocRef(window.gameState.roomId).update({ hostActive: false });
+                }
+            });
+        };
+
+        window.checkPinAndLoadTeams = async function(retryCount) {
+            if (typeof retryCount === 'undefined') retryCount = 0;
+            await window.authReady;
+
+            var pinInput = document.getElementById('joinPinInput');
+            var statusDiv = document.getElementById('pinCheckStatus');
+            var select = document.getElementById('joinTeamSelect');
+            if (!pinInput || !statusDiv || !select) return;
+
+            var rawPin = pinInput.value.replace(/[^0-9]/g, '');
+            pinInput.value = rawPin;
+            var pin = rawPin.trim();
+
+            if (pin.length < 4) {
+                statusDiv.className = "text-[11px] mt-1 text-slate-400 text-center font-bold";
+                statusDiv.innerText = "PIN 번호 4자리를 입력해주세요";
+                select.innerHTML = '<option value="">PIN 번호를 먼저 입력하세요</option>';
+                return;
+            }
+
+            statusDiv.className = "text-[11px] mt-1 text-indigo-300 text-center font-bold";
+            statusDiv.innerText = retryCount > 0 ? "🔍 방 정보를 검색 중입니다 (" + retryCount + "/3)..." : "🔍 방 정보 확인 중...";
+
+            if (window.db) {
+                try {
+                    var docSnap = await window.getRoomDocRef(pin).get();
+                    if (docSnap.exists) {
+                        var room = docSnap.data();
+                        var count = room.teams ? Object.keys(room.teams).length : 5;
+                        statusDiv.className = "text-[11px] mt-1 text-emerald-400 text-center font-bold";
+                        statusDiv.innerText = "✅ 방 확인 완료 (1~" + count + "모둠전)";
+                        window.updateJoinSelectOptions(room);
+                    } else if (retryCount < 2) {
+                        setTimeout(function() { window.checkPinAndLoadTeams(retryCount + 1); }, 800);
+                    } else {
+                        statusDiv.className = "text-[11px] mt-1 text-rose-400 text-center font-bold";
+                        statusDiv.innerText = "❌ 존재하지 않는 PIN 번호입니다.";
+                        select.innerHTML = '<option value="">올바른 PIN을 입력하세요</option>';
+                    }
+                } catch (err) {
+                    console.error("Firestore get error:", err);
+                    statusDiv.className = "text-[11px] mt-1 text-rose-400 text-center font-bold";
+                    statusDiv.innerText = "❌ 서버 접속 실패 (Firebase 규칙 확인)";
+                }
+            } else if (window.gameState.roomData && window.gameState.roomData.roomId === pin) {
+                var room = window.gameState.roomData;
+                var count = room.teams ? Object.keys(room.teams).length : 5;
+                statusDiv.className = "text-[11px] mt-1 text-emerald-400 text-center font-bold";
+                statusDiv.innerText = "✅ 방 확인 완료 (1~" + count + "모둠전)";
+                window.updateJoinSelectOptions(room);
+            } else {
+                statusDiv.className = "text-[11px] mt-1 text-rose-400 text-center font-bold";
+                statusDiv.innerText = "❌ 존재하지 않는 PIN 번호입니다.";
+                select.innerHTML = '<option value="">올바른 PIN을 입력하세요</option>';
+            }
+        };
+
+        window.updateJoinSelectOptions = function(data) {
+            var select = document.getElementById('joinTeamSelect');
+            if (!select || !data || !data.teams) return;
+
+            var teamsList = Object.values(data.teams);
+            var html = '';
+            teamsList.forEach(function(t) {
+                var statusText = t.joined ? ' (🟢 접속됨)' : ' (⚪ 미접속)';
+                html += `<option value="${t.id}">${t.name}${statusText}</option>`;
+            });
+            select.innerHTML = html;
+        };
+
+        window.reconnectHostByInputPin = function() {
+            var input = document.getElementById('hostReconnectPinInput');
+            if (!input) return;
+            var pin = input.value.replace(/[^0-9]/g, '').trim();
+
+            if (!pin || pin.length !== 4) {
+                window.showToast("4자리 방 PIN 번호를 정확히 입력하세요!");
+                return;
+            }
+            window.reconnectHostRoom(pin);
+        };
+
+        window.reconnectHostRoom = async function(pin) {
+            playSound('click');
+            await window.authReady;
+
+            if (window.db) {
+                try {
+                    var docSnap = await window.getRoomDocRef(pin).get();
+                    if (docSnap.exists) {
+                        window.gameState.role = 'host';
+                        window.gameState.roomId = pin;
+                        window.gameState.roomData = docSnap.data();
+
+                        localStorage.setItem('earth_strata_team_host_pin', pin);
+
+                        document.getElementById('pinDisplay').innerText = pin;
+                        document.getElementById('roomPinBadge').classList.remove('hidden');
+
+                        await window.getRoomDocRef(pin).update({
+                            hostActive: true,
+                            lastHostPing: Date.now()
+                        });
+
+                        if (window.roomUnsubscribe) window.roomUnsubscribe();
+                        window.roomUnsubscribe = window.getRoomDocRef(pin).onSnapshot(function(snap) {
+                            if (snap.exists) {
+                                window.gameState.roomData = snap.data();
+                                window.renderHostScreen();
+                            }
+                        });
+
+                        window.startHostHeartbeat(pin);
+                        window.renderHostScreen();
+                        window.showToast("🎉 PIN " + pin + "번 모둠방에 교사 권한으로 복귀했습니다!");
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Reconnect error:", err);
+                }
+            } else if (window.gameState.roomData && window.gameState.roomData.roomId === pin) {
+                window.gameState.role = 'host';
+                window.gameState.roomId = pin;
+                document.getElementById('pinDisplay').innerText = pin;
+                document.getElementById('roomPinBadge').classList.remove('hidden');
+                window.renderHostScreen();
+                window.showToast("🎉 미리보기 모드로 방에 복귀했습니다!");
+                return;
+            }
+            window.showToast("입력한 PIN 번호의 방을 찾을 수 없습니다.");
+        };
+
+        window.setupHostRoom = async function() {
+            playSound('click');
+            await window.authReady;
+
+            var countInput = document.getElementById('selectedTeamCount');
+            var teamCount = countInput ? parseInt(countInput.value) || 5 : 5;
+
+            var pin = Math.floor(1000 + Math.random() * 9000).toString();
+            window.gameState.role = 'host';
+            window.gameState.roomId = pin;
+
+            localStorage.setItem('earth_strata_team_host_pin', pin);
+
+            document.getElementById('pinDisplay').innerText = pin;
+            document.getElementById('roomPinBadge').classList.remove('hidden');
+
+            var initialParticipants = {};
+            for (var i = 1; i <= teamCount; i++) {
+                var key = i.toString();
+                var name = `${i}모둠`;
+                initialParticipants[key] = {
+                    id: key,
+                    name: name,
+                    points: 100,
+                    currentBid: 5,
+                    choice: null,
+                    submitted: false,
+                    joined: false,
+                    rescueRequested: false,
+                    requestedLoanAmount: 50,
+                    debt: 0,
+                    loanCount: 0
+                };
+            }
+
+            var roomData = {
+                roomId: pin,
+                mode: 'team',
+                maxPlayers: teamCount,
+                status: 'waiting',
+                currentQuestionIdx: 0,
+                isRevealed: false,
+                teams: initialParticipants,
+                hostActive: true,
+                lastHostPing: Date.now(),
+                updatedAt: Date.now()
+            };
+
+            window.gameState.roomData = roomData;
+
+            if (window.db) {
+                try {
+                    await window.getRoomDocRef(pin).set(roomData);
+                    if (window.roomUnsubscribe) window.roomUnsubscribe();
+                    window.roomUnsubscribe = window.getRoomDocRef(pin).onSnapshot(function(docSnap) {
+                        if (docSnap.exists) {
+                            window.gameState.roomData = docSnap.data();
+                            window.renderHostScreen();
+                        }
+                    });
+                    window.startHostHeartbeat(pin);
+                } catch (e) {
+                    console.error("Host room creation error:", e);
+                    window.showToast("방 생성 중 오류가 발생했습니다.");
+                }
+            }
+            window.renderHostScreen();
+        };
+
+        window.renderHostScreen = function() {
+            var data = window.gameState.roomData;
+            if (!data) return;
+            if (data.status === 'waiting') {
+                window.renderHostLobby();
+            } else if (data.status === 'playing') {
+                window.renderHostDashboard();
+            } else if (data.status === 'debriefing') {
+                window.renderDebriefingViewHost();
+            }
+        };
+
+        window.renderHostLobby = function() {
+            var container = document.getElementById('appContainer');
+            var data = window.gameState.roomData;
+            var teamsList = Object.values(data.teams);
+            var totalCount = teamsList.length;
+            var joinedCount = teamsList.filter(function(t) { return t.joined; }).length;
+
+            document.getElementById('gameModeBadgeHeader').innerText = `모둠전 대기실 (1~${totalCount}모둠)`;
+
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto w-full space-y-4 my-auto py-2">
+                    <div class="glass-panel rounded-3xl p-6 md:p-8 text-center glow-effect border-2 border-amber-500/40 relative overflow-hidden">
+                        <div class="text-xs sm:text-sm font-bold text-amber-300 tracking-wider uppercase mb-1">
+                            <i class="fa-solid fa-wifi mr-1.5 animate-pulse text-emerald-400"></i>모둠 기기 접속용 방 PIN 번호
+                        </div>
+                        <div class="text-6xl sm:text-8xl font-black font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-300 to-emerald-300 my-2 drop-shadow-lg">
+                            ${data.roomId}
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-300">
+                            각 모둠은 오른쪽 <span class="text-emerald-300 font-bold">'모둠 기기 접속'</span>에서 PIN 번호 <span class="font-bold text-amber-300 font-mono text-base">${data.roomId}</span>와(과) 모둠 번호를 선택하여 입장하세요.
+                        </p>
+
+                        <div class="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap justify-between items-center gap-3">
+                            <div class="flex items-center gap-2 text-xs md:text-sm font-bold">
+                                <span class="text-slate-400">모둠 접속 현황:</span>
+                                <span class="text-emerald-400 font-black text-lg md:text-xl">${joinedCount} / ${totalCount} 모둠</span>
+                                <span class="text-xs font-normal text-slate-400">(${Math.round((joinedCount/totalCount)*100)}%)</span>
+                            </div>
+                            <button onclick="simulateMockJoins()" class="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs rounded-xl font-bold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                <span>1~${totalCount}모둠 전원 가상 접속</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel rounded-3xl p-5 border border-slate-800 space-y-3">
+                        <div class="flex justify-between items-center px-1">
+                            <h3 class="font-bold text-sm text-slate-200 font-title flex items-center gap-2">
+                                <i class="fa-solid fa-users text-amber-400"></i>
+                                <span>1~${totalCount}모둠 실시간 접속 현황</span>
+                            </h3>
+                            <div class="flex items-center gap-3 text-xs">
+                                <span class="flex items-center gap-1 text-emerald-400 font-bold"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block animate-ping"></span> 접속 완료 (${joinedCount})</span>
+                                <span class="flex items-center gap-1 text-slate-500"><span class="w-2.5 h-2.5 rounded-full bg-slate-700 inline-block"></span> 미접속 (${totalCount - joinedCount})</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-${Math.min(totalCount, 6)} gap-3 p-1">
+                            ${teamsList.map(function(t) {
+                                return `
+                                    <div class="p-4 rounded-2xl border text-center transition flex flex-col justify-between items-center space-y-2 ${t.joined ? 'bg-emerald-950/40 border-emerald-500/60 text-emerald-200 shadow-md shadow-emerald-950/50' : 'bg-slate-900/40 border-slate-800 text-slate-500'}">
+                                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-base ${t.joined ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-400/40' : 'bg-slate-800 text-slate-600'}">
+                                            <i class="fa-solid ${t.joined ? 'fa-users' : 'fa-user-clock'}"></i>
+                                        </div>
+                                        <div class="font-black text-sm font-title">${t.name}</div>
+                                        <span class="text-[11px] px-2.5 py-0.5 rounded-full font-bold ${t.joined ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800/80 text-slate-500'}">
+                                            ${t.joined ? '접속 완료' : '대기 중'}
+                                        </span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <button onclick="startHostGame()" class="w-full py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-600 hover:from-amber-400 hover:to-emerald-500 text-slate-950 font-black rounded-2xl shadow-xl transition font-title text-lg flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-play text-xl animate-bounce"></i>
+                        <span>지권 문제 투자 시작하기 (문항 1 진행)</span>
+                    </button>
+                </div>
+            `;
+        };
+
+        window.simulateMockJoins = function() {
+            playSound('click');
+            var data = window.gameState.roomData;
+            Object.values(data.teams).forEach(function(t) {
+                t.joined = true;
+            });
+
+            if (window.db) {
+                window.getRoomDocRef(data.roomId).update({ teams: data.teams });
+            } else {
+                window.renderHostScreen();
+            }
+        };
+
+        window.startHostGame = function() {
+            playSound('correct');
+            var data = window.gameState.roomData;
+            data.status = 'playing';
+
+            if (window.db) {
+                window.getRoomDocRef(data.roomId).update({
+                    status: 'playing',
+                    updatedAt: Date.now()
+                });
+            } else {
+                window.renderHostScreen();
+            }
+        };
+
+        window.renderHostDashboard = function() {
+            var container = document.getElementById('appContainer');
+            var data = window.gameState.roomData;
+            var q = window.questionBank[data.currentQuestionIdx];
+
+            var teamsList = Object.values(data.teams);
+            var totalCount = teamsList.length;
+            var submittedCount = teamsList.filter(function(t) { return t.submitted; }).length;
+
+            container.innerHTML = `
+                <div class="space-y-3">
+                    <div class="glass-panel rounded-2xl p-4 md:p-5 relative overflow-hidden border-2 border-amber-500/30">
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+                            <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                                문제 ${data.currentQuestionIdx + 1} / ${window.questionBank.length} · [${q.category}] · ${q.type === 'ox' ? 'OX 퀴즈' : (q.type === 'choice' ? '객관식 선다형' : '주관식 단답형')}
+                            </span>
+
+                            <div class="flex items-center gap-3">
+                                <div class="text-xs font-bold bg-slate-900/80 px-3 py-1 rounded-xl border border-slate-700/80 flex items-center gap-2">
+                                    <span class="text-slate-400">투자 현황:</span>
+                                    <span class="text-emerald-400 font-black">${submittedCount} / ${totalCount} 모둠</span>
+                                    <div class="w-16 bg-slate-800 rounded-full h-2 overflow-hidden hidden sm:block">
+                                        <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${(submittedCount / totalCount) * 100}%"></div>
+                                    </div>
+                                </div>
+
+                                <button onclick="simulateMockSubmissions()" class="px-2.5 py-1 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 text-xs rounded-xl font-bold transition flex items-center gap-1">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                    <span>모의 투자 시뮬레이션</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950/80 p-4 md:p-6 rounded-2xl border border-slate-800 my-1 space-y-3">
+                            <h2 class="text-base md:text-lg font-black text-slate-100 font-title leading-relaxed">
+                                ${q.statement}
+                            </h2>
+                            ${q.options ? `
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left pt-2 border-t border-slate-800/80">
+                                    ${q.options.map(function(opt, optIdx) {
+                                        var numIcon = ['①', '②', '③', '④', '⑤'][optIdx] || (optIdx + 1);
+                                        return `
+                                            <div class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800 text-xs text-slate-200">
+                                                <span class="font-bold text-amber-400 mr-1.5">${numIcon}</span>${opt}
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${data.isRevealed ? `
+                            <div class="mt-3 p-3.5 rounded-xl border bg-indigo-950/50 border-indigo-500/50 text-indigo-100">
+                                <div class="flex items-center gap-2 font-black text-base md:text-lg mb-1">
+                                    <span class="text-amber-300">정답 발표:</span>
+                                    <span class="text-emerald-300 font-mono">${q.type === 'ox' ? (q.answer === 'O' ? '⭕ O' : '❌ X') : (q.type === 'choice' ? q.answer + '번' : q.answer)}</span>
+                                </div>
+                                <p class="text-xs md:text-sm font-medium leading-relaxed">${q.explanation}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-${Math.min(totalCount, 6)} gap-3 p-1">
+                        ${teamsList.map(function(t) {
+                            var isZero = t.points <= 0;
+                            var isRescueRequested = t.rescueRequested;
+                            var debt = t.debt || 0;
+                            var loanAttemptCount = (t.loanCount || 0) + 1;
+                            var currentRate = 100 + (loanAttemptCount * 10);
+                            var isCorrect = t.submitted && window.checkQuestionCorrectness(q, t.choice);
+
+                            return `
+                                <div class="glass-panel rounded-2xl p-3.5 border ${isRescueRequested ? 'border-amber-400 bg-amber-950/40 animate-pulse' : (isZero ? 'border-rose-500/80 bg-rose-950/30' : (data.isRevealed ? ( t.submitted && isCorrect ? 'border-emerald-500 bg-emerald-950/30' : 'border-rose-500 bg-rose-950/30' ) : (t.submitted ? 'border-amber-500/60 bg-amber-950/30' : 'border-slate-800 bg-slate-900/40')))} space-y-2 transition">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-black text-sm text-slate-100 font-title">${t.name}</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded font-bold ${isRescueRequested ? 'bg-amber-400 text-slate-950 font-black' : (isZero ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : (t.submitted ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-500'))}">
+                                            ${isRescueRequested ? `💳 ${loanAttemptCount}회차 대출` : (isZero ? '파산' : (t.submitted ? '투자완료✓' : '대기'))}
+                                        </span>
+                                    </div>
+
+                                    <div class="bg-slate-950/60 p-2 rounded-xl text-xs space-y-1">
+                                        <div class="flex justify-between text-slate-400">
+                                            <span>자본</span>
+                                            <span class="${isZero ? 'text-rose-400 font-black' : 'text-emerald-400 font-bold'}">${t.points}p</span>
+                                        </div>
+                                        ${debt > 0 ? `
+                                            <div class="flex justify-between text-amber-400 font-bold">
+                                                <span>대출 잔액</span>
+                                                <span>${debt}p</span>
+                                            </div>
+                                        ` : ''}
+                                        <div class="flex justify-between text-slate-400">
+                                            <span>투자</span>
+                                            <span class="text-amber-300 font-bold">${t.submitted ? t.currentBid + 'p' : '-'}</span>
+                                        </div>
+                                        <div class="flex justify-between text-slate-400">
+                                            <span>선택</span>
+                                            <span class="font-bold truncate max-w-[90px] ${t.submitted ? (data.isRevealed ? (isCorrect ? 'text-emerald-400' : 'text-rose-400') : 'text-amber-300') : 'text-slate-600'}">
+                                                ${t.submitted ? (data.isRevealed ? window.formatChoiceDisplay(q, t.choice) : '🔒제출') : '-'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-1.5 pt-1">
+                                        <button onclick="adjustTeamPoints('${t.id}', -20)" class="py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 rounded-lg text-[11px] font-bold border border-rose-500/30 transition">-20pt</button>
+                                        <button onclick="adjustTeamPoints('${t.id}', 20)" class="py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[11px] font-bold border border-emerald-500/30 transition">+20pt</button>
+                                    </div>
+
+                                    ${isRescueRequested ? `
+                                        <div class="bg-amber-950/60 p-2 rounded-xl border border-amber-500/40 space-y-1.5">
+                                            <div class="text-[11px] text-amber-300 font-bold flex justify-between">
+                                                <span>${loanAttemptCount}회차 (이율 ${currentRate}%):</span>
+                                                <span class="font-black text-amber-200">${t.requestedLoanAmount || 50}pt</span>
+                                            </div>
+                                            <div class="flex items-center gap-1">
+                                                <span class="text-[10px] text-slate-400 shrink-0">승인액:</span>
+                                                <input type="number" id="hostLoanAmt_${t.id}" value="${t.requestedLoanAmount || 50}" min="10" max="500" step="10" class="w-full bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-xs font-bold text-amber-300 focus:outline-none focus:border-amber-400">
+                                                <span class="text-[10px] text-slate-400 shrink-0">pt</span>
+                                            </div>
+                                            <button onclick="approveRescueByHost('${t.id}')" class="w-full py-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black rounded-lg text-xs shadow transition flex items-center justify-center gap-1">
+                                                <i class="fa-solid fa-hand-holding-dollar"></i>
+                                                <span>${loanAttemptCount}회차 대출 승인</span>
+                                            </button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <div class="flex justify-end pt-1">
+                        ${!data.isRevealed ? `
+                            <button onclick="revealHostResult()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-lg transition text-sm md:text-base font-title flex items-center gap-2">
+                                <i class="fa-solid fa-gavel"></i>
+                                <span>정산 발표 & 결과 공개 (${submittedCount}/${totalCount} 제출)</span>
+                            </button>
+                        ` : `
+                            ${data.currentQuestionIdx < window.questionBank.length - 1 ? `
+                                <button onclick="nextHostQuestion()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-lg transition text-sm md:text-base font-title flex items-center gap-2">
+                                    <span>다음 문제 진행</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            ` : `
+                                <button onclick="renderDebriefingViewHost()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-lg transition text-sm md:text-base font-title flex items-center gap-2">
+                                    <i class="fa-solid fa-trophy"></i>
+                                    <span>최종 리포트 (디브리핑)</span>
+                                </button>
+                            `}
+                        `}
+                    </div>
+                </div>
+            `;
+        };
+
+        window.adjustTeamPoints = function(teamId, amount) {
+            var data = window.gameState.roomData;
+            if (data && data.teams && data.teams[teamId]) {
+                var team = data.teams[teamId];
+                team.points = Math.max(0, team.points + amount);
+
+                if (window.db) {
+                    window.getRoomDocRef(data.roomId).update({ teams: data.teams });
+                } else {
+                    window.renderHostScreen();
+                }
+                window.showToast("⚙️ " + team.name + "의 자본금이 " + (amount > 0 ? '+' + amount : amount) + " pt 조정되었습니다.");
+            }
+        };
+
+        window.approveRescueByHost = function(targetTeamId) {
+            playSound('correct');
+            var data = window.gameState.roomData;
+            
+            if (data.teams && data.teams[targetTeamId]) {
+                var team = data.teams[targetTeamId];
+                var inputElem = document.getElementById('hostLoanAmt_' + targetTeamId);
+                var rawVal = inputElem ? parseInt(inputElem.value) : (team.requestedLoanAmount || 50);
+                var approvedAmount = Math.max(10, Math.round(rawVal / 10) * 10);
+                
+                var loanAttempt = (team.loanCount || 0) + 1;
+                var rate = 1.0 + (loanAttempt * 0.1);
+                var debtForThisLoan = Math.round(approvedAmount * rate);
+
+                team.points += approvedAmount;
+                team.debt = (team.debt || 0) + debtForThisLoan;
+                team.loanCount = loanAttempt;
+                team.rescueRequested = false;
+
+                if (window.db) {
+                    window.getRoomDocRef(data.roomId).update({ teams: data.teams });
+                } else {
+                    window.renderHostScreen();
+                }
+                window.showToast("🎉 " + team.name + "에게 " + loanAttempt + "회차 대출금 +" + approvedAmount + " pt가 지급되었습니다! (대출 상환금: " + debtForThisLoan + " pt / 총 부채: " + team.debt + " pt)");
+            }
+        };
+
+        window.simulateMockSubmissions = function() {
+            playSound('click');
+            var data = window.gameState.roomData;
+            var q = window.questionBank[data.currentQuestionIdx];
+
+            Object.values(data.teams).forEach(function(t) {
+                if (t.points > 0) {
+                    var isLucky = Math.random() > 0.3;
+                    if (q.type === 'ox') {
+                        t.choice = isLucky ? q.answer : (q.answer === 'O' ? 'X' : 'O');
+                    } else if (q.type === 'choice') {
+                        if (isLucky) {
+                            t.choice = q.answer;
+                        } else {
+                            var wrongOptions = [];
+                            for (var opt = 1; opt <= q.options.length; opt++) {
+                                if (opt !== q.answer) wrongOptions.push(opt);
+                            }
+                            t.choice = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+                        }
+                    } else if (q.type === 'short') {
+                        t.choice = isLucky ? q.answer : "모름";
+                    }
+
+                    t.currentBid = Math.min(t.points, Math.floor(Math.random() * 4 + 1) * 5);
+                    t.submitted = true;
+                }
+            });
+
+            if (window.db) {
+                window.getRoomDocRef(data.roomId).update({ teams: data.teams });
+            } else {
+                window.renderHostScreen();
+            }
+        };
+
+        window.revealHostResult = function() {
+            playSound('correct');
+            var data = window.gameState.roomData;
+            var q = window.questionBank[data.currentQuestionIdx];
+
+            data.isRevealed = true;
+
+            Object.values(data.teams).forEach(function(t) {
+                if (t.submitted && t.choice) {
+                    var isCorrect = window.checkQuestionCorrectness(q, t.choice);
+                    if (isCorrect) {
+                        t.points += t.currentBid;
+                    } else {
+                        t.points = Math.max(0, t.points - t.currentBid);
+                    }
+                }
+            });
+
+            if (window.db) {
+                window.getRoomDocRef(data.roomId).update({
+                    isRevealed: true,
+                    teams: data.teams,
+                    updatedAt: Date.now()
+                });
+            } else {
+                window.renderHostScreen();
+            }
+        };
+
+        window.nextHostQuestion = function() {
+            playSound('click');
+            var data = window.gameState.roomData;
+            if (data.currentQuestionIdx < window.questionBank.length - 1) {
+                data.currentQuestionIdx++;
+                data.isRevealed = false;
+
+                window.clientLocalInput = { choice: null, bid: 5 };
+
+                Object.values(data.teams).forEach(function(t) {
+                    t.choice = null;
+                    t.currentBid = Math.min(5, t.points);
+                    t.submitted = false;
+                });
+
+                if (window.db) {
+                    window.getRoomDocRef(data.roomId).update({
+                        currentQuestionIdx: data.currentQuestionIdx,
+                        isRevealed: false,
+                        teams: data.teams,
+                        updatedAt: Date.now()
+                    });
+                } else {
+                    window.renderHostScreen();
+                }
+            }
+        };
+
+        window.joinClientRoom = async function() {
+            playSound('click');
+            await window.authReady;
+
+            var pinInput = document.getElementById('joinPinInput');
+            var teamId = document.getElementById('joinTeamSelect') ? document.getElementById('joinTeamSelect').value : '';
+            var pin = pinInput ? pinInput.value.replace(/[^0-9]/g, '').trim() : '';
+
+            if (!pin || pin.length !== 4) {
+                window.showToast("올바른 4자리 방 PIN 번호를 입력하세요!");
+                return;
+            }
+
+            if (!teamId) {
+                window.showToast("참여할 모둠을 선택해 주세요!");
+                return;
+            }
+
+            window.gameState.role = 'client';
+            window.gameState.roomId = pin;
+            window.gameState.myTeamId = teamId;
+
+            document.getElementById('pinDisplay').innerText = pin;
+            document.getElementById('roomPinBadge').classList.remove('hidden');
+
+            if (window.db) {
+                try {
+                    var docSnap = await window.getRoomDocRef(pin).get();
+                    if (!docSnap.exists) {
+                        window.showToast("존재하지 않는 방 번호입니다. 교사 화면의 PIN 번호를 확인하세요.");
+                        return;
+                    }
+
+                    var room = docSnap.data();
+                    if (!room.teams) room.teams = {};
+                    
+                    if (room.teams[teamId]) {
+                        room.teams[teamId].joined = true;
+                    }
+
+                    await window.getRoomDocRef(pin).update({ teams: room.teams });
+
+                    if (window.roomUnsubscribe) window.roomUnsubscribe();
+                    window.roomUnsubscribe = window.getRoomDocRef(pin).onSnapshot(function(snap) {
+                        if (snap.exists) {
+                            window.gameState.roomData = snap.data();
+                            window.renderClientDashboard();
+                        }
+                    }, function(error) {
+                        console.error("Snapshot error:", error);
+                        window.showToast("실시간 연결에 문제가 발생했습니다.");
+                    });
+                } catch (err) {
+                    console.error("Join error:", err);
+                    window.showToast("방 입장 중 오류가 발생했습니다. 다시 시도해 주세요.");
+                }
+            } else {
+                if (!window.gameState.roomData) {
+                    var initialParticipants = {};
+                    for (var i = 1; i <= 5; i++) {
+                        var key = i.toString();
+                        initialParticipants[key] = {
+                            id: key, name: `${i}모둠`, points: 100, currentBid: 5, choice: null, submitted: false, joined: false, rescueRequested: false, debt: 0, loanCount: 0
+                        };
+                    }
+                    window.gameState.roomData = {
+                        roomId: pin,
+                        mode: 'team',
+                        maxPlayers: 5,
+                        status: 'waiting',
+                        currentQuestionIdx: 0,
+                        isRevealed: false,
+                        teams: initialParticipants,
+                        hostActive: true,
+                        updatedAt: Date.now()
+                    };
+                }
+                if (window.gameState.roomData.teams && window.gameState.roomData.teams[teamId]) {
+                    window.gameState.roomData.teams[teamId].joined = true;
+                }
+                window.renderClientDashboard();
+            }
+        };
+
+        window.renderClientDashboard = function() {
+            var container = document.getElementById('appContainer');
+            var data = window.gameState.roomData;
+            var myTeamId = window.gameState.myTeamId;
+            var myTeam = (data && data.teams && data.teams[myTeamId]) ? data.teams[myTeamId] : { name: myTeamId + '모둠', points: 100, currentBid: 5, choice: null, submitted: false, joined: true, rescueRequested: false, debt: 0, loanCount: 0 };
+
+            if (!data) return;
+
+            if (myTeam.submitted) {
+                window.clientLocalInput.choice = myTeam.choice;
+                window.clientLocalInput.bid = myTeam.currentBid;
+            }
+
+            if (data.hostActive === false) {
+                container.innerHTML = `
+                    <div class="max-w-md mx-auto w-full space-y-5 my-auto text-center p-4">
+                        <div class="glass-panel rounded-3xl p-6 border-2 border-amber-500/50 glow-effect space-y-4">
+                            <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-3xl mx-auto">
+                                <i class="fa-solid fa-wifi animate-pulse"></i>
+                            </div>
+                            <h2 class="text-2xl font-black font-title text-amber-300">
+                                선생님 화면 연결 재시도 중...
+                            </h2>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                선생님의 인터넷 연결이 잠시 불안정하거나 화면을 재초기화 중입니다.<br>
+                                <strong class="text-emerald-300">투자 데이터는 안전하게 보존되어 있으니 잠시만 기다려 주세요!</strong>
+                            </p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (data.status === 'waiting') {
+                container.innerHTML = `
+                    <div class="max-w-md mx-auto w-full space-y-5 my-auto text-center p-4">
+                        <div class="glass-panel rounded-3xl p-6 border-2 border-emerald-500/40 glow-effect space-y-4">
+                            <div class="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center justify-center text-3xl mx-auto">
+                                <i class="fa-solid fa-mountain fa-spin"></i>
+                            </div>
+
+                            <div>
+                                <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                                    🟢 접속 완료! (방 PIN: ${data.roomId})
+                                </span>
+                                <h2 class="text-2xl font-black font-title text-slate-100 mt-2">
+                                    ${myTeam.name} 대기 중
+                                </h2>
+                            </div>
+
+                            <div class="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 text-left space-y-2">
+                                <div class="text-xs text-amber-300 font-bold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-coins"></i> 초기 투자 자본: <span class="text-emerald-400 font-black text-sm">${myTeam.points} pt</span>
+                                </div>
+                                <hr class="border-slate-800 my-2">
+                                <p class="text-xs text-slate-400 leading-relaxed">
+                                    💡 선생님이 스크린 화면에서 <span class="text-amber-300 font-bold">'지권 문제 투자 시작하기'</span>를 누르면 첫 번째 문제가 나타납니다.
+                                </p>
+                            </div>
+
+                            <div class="flex items-center justify-center gap-2 text-xs text-slate-400 pt-1">
+                                <i class="fa-solid fa-spinner fa-spin text-amber-400"></i>
+                                <span>선생님의 시작을 기다리는 중...</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (data.status === 'debriefing') {
+                var teamsList = Object.values(data.teams).sort(function(a, b) { 
+                    var scoreA = Math.max(0, a.points - (a.debt || 0));
+                    var scoreB = Math.max(0, b.points - (b.debt || 0));
+                    return scoreB - scoreA; 
+                });
+                var myRank = teamsList.findIndex(function(t) { return t.id === myTeamId; }) + 1;
+                var myDebt = myTeam.debt || 0;
+                var netScore = Math.max(0, myTeam.points - myDebt);
+
+                container.innerHTML = `
+                    <div class="max-w-md mx-auto w-full space-y-4 my-auto text-center p-4">
+                        <div class="glass-panel rounded-3xl p-6 border-2 border-amber-500/40 glow-effect space-y-4">
+                            <div class="inline-block bg-amber-500/20 text-amber-400 p-3 rounded-2xl border border-amber-400/30">
+                                <i class="fa-solid fa-trophy text-4xl"></i>
+                            </div>
+                            <h2 class="text-2xl font-black font-title text-amber-300">투자 종료!</h2>
+                            <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+                                <div class="text-xs text-slate-400">${myTeam.name}의 최종 결과</div>
+                                <div class="text-3xl font-black text-amber-300 font-title">${myRank}위</div>
+                                <div class="text-emerald-400 font-bold text-lg">${netScore} pt</div>
+                                ${myDebt > 0 ? `
+                                    <div class="text-[11px] text-rose-400">
+                                        (보유 ${myTeam.points}p - 미상환 대출 ${myDebt}p)
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <p class="text-xs text-slate-300">선생님의 디브리핑 설명을 경청해 주세요!</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            var q = window.questionBank[data.currentQuestionIdx];
+            var currentChoice = window.clientLocalInput.choice;
+            var debt = myTeam.debt || 0;
+            var nextLoanCount = (myTeam.loanCount || 0) + 1;
+            var nextLoanRate = 100 + (nextLoanCount * 10);
+            
+            var maxPt = myTeam.points;
+            var minPt = maxPt >= 5 ? 5 : 0;
+            var currentBid = window.clientLocalInput.bid !== undefined ? window.clientLocalInput.bid : Math.min(5, maxPt);
+            if (currentBid > maxPt) currentBid = maxPt;
+            if (currentBid < minPt && maxPt > 0) currentBid = minPt;
+
+            var isBankrupt = maxPt <= 0;
+            var isCorrect = myTeam.submitted && window.checkQuestionCorrectness(q, myTeam.choice);
+
+            // 한글 입력 중 DOM 파괴로 인한 타이핑 끊김 방지 가드
+            var currentForm = document.getElementById('clientBiddingForm');
+            var renderedQIdx = container.dataset.renderedQIdx;
+            var renderedRevealed = container.dataset.renderedRevealed;
+            var renderedSubmitted = container.dataset.renderedSubmitted;
+
+            if (currentForm && 
+                renderedQIdx === String(data.currentQuestionIdx) && 
+                renderedRevealed === String(data.isRevealed) && 
+                renderedSubmitted === String(myTeam.submitted) && 
+                !isBankrupt && !myTeam.rescueRequested) {
+                
+                var ptElem = document.getElementById('clientMyPointsDisplay');
+                if (ptElem) {
+                    ptElem.innerHTML = `<i class="fa-solid fa-coins text-amber-400 mr-1"></i>${myTeam.points} pt`;
+                }
+                var rangeInput = document.getElementById('bidRangeInput');
+                if (rangeInput && !myTeam.submitted) {
+                    rangeInput.max = maxPt;
+                }
+                return;
+            }
+
+            container.dataset.renderedQIdx = data.currentQuestionIdx;
+            container.dataset.renderedRevealed = data.isRevealed;
+            container.dataset.renderedSubmitted = myTeam.submitted;
+
+            container.innerHTML = `
+                <div class="max-w-xl mx-auto w-full space-y-4">
+                    <div class="glass-panel rounded-2xl p-4 flex justify-between items-center border-2 border-amber-500/30">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-300 font-black flex items-center justify-center text-sm border border-amber-400/30">
+                                ${myTeam.name}
+                            </span>
+                            <div>
+                                <span class="font-bold text-base text-slate-100 font-title">${myTeam.name}</span>
+                                <div class="text-[11px] text-slate-400">${myTeam.loanCount > 0 ? '대출 ' + myTeam.loanCount + '회 이용 중' : '투자 참여 중'}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-400">내 보유 자본</div>
+                            <div id="clientMyPointsDisplay" class="${isBankrupt ? 'text-rose-400 font-black' : 'text-emerald-400 font-black'} text-xl"><i class="fa-solid fa-coins text-amber-400 mr-1"></i>${myTeam.points} pt</div>
+                        </div>
+                    </div>
+
+                    ${debt > 0 ? `
+                        <div class="glass-panel rounded-2xl p-3.5 border border-amber-500/50 bg-amber-950/30 flex justify-between items-center gap-2">
+                            <div>
+                                <div class="text-xs text-amber-300 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-building-columns"></i> 대출 잔액 (총 부채):
+                                </div>
+                                <div class="text-sm font-black text-rose-300">${debt} pt</div>
+                            </div>
+                            <button onclick="clientRepayLoan()" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black rounded-xl text-xs shadow-md transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-receipt"></i>
+                                <span>대출 상환하기</span>
+                            </button>
+                        </div>
+                    ` : ''}
+
+                    <div class="glass-panel rounded-2xl p-5 text-center space-y-3">
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                            문제 ${data.currentQuestionIdx + 1} / ${window.questionBank.length} · [${q.category}] · ${q.type === 'ox' ? 'OX 퀴즈' : (q.type === 'choice' ? '객관식 선다형' : '주관식 단답형')}
+                        </span>
+                        <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 my-1 space-y-3">
+                            <h2 class="text-base md:text-lg font-bold text-slate-100 leading-relaxed font-title text-left">
+                                ${q.statement}
+                            </h2>
+                            ${q.options ? `
+                                <div class="space-y-1.5 text-left pt-2 border-t border-slate-800/80">
+                                    ${q.options.map(function(opt, optIdx) {
+                                        var numIcon = ['①', '②', '③', '④', '⑤'][optIdx] || (optIdx + 1);
+                                        return `
+                                            <div class="p-2 rounded-xl border border-slate-800/80 bg-slate-900/60 text-xs text-slate-300">
+                                                <span class="font-bold text-amber-400 mr-1.5">${numIcon}</span>${opt}
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    ${!data.isRevealed ? `
+                        ${isBankrupt ? `
+                            ${myTeam.rescueRequested ? `
+                                <div class="glass-panel rounded-2xl p-6 text-center space-y-3 border-2 border-amber-500/50 bg-amber-950/20">
+                                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-2xl mx-auto">
+                                        <i class="fa-solid fa-hourglass-half fa-spin"></i>
+                                    </div>
+                                    <h3 class="text-lg font-black font-title text-amber-300">${nextLoanCount}회차 대출 신청 제출 완료!</h3>
+                                    <p class="text-xs text-slate-300 leading-relaxed">
+                                        대출 심사 퀴즈를 맞췄습니다!<br>
+                                        선생님이 전면 스크린에서 <strong class="text-amber-400">'${nextLoanCount}회차 대출 승인'</strong> 버튼을 누르시면 대출금을 받고 투자에 복귀합니다.
+                                    </p>
+                                </div>
+                            ` : `
+                                <div class="glass-panel rounded-2xl p-6 text-center space-y-4 border-2 border-rose-500/50 bg-rose-950/20">
+                                    <div class="text-4xl">💸</div>
+                                    <div>
+                                        <h3 class="text-xl font-black font-title text-rose-300">자금이 모두 소진되었습니다!</h3>
+                                        <p class="text-xs text-slate-300 mt-1">대출 심사 퀴즈를 맞추면 <strong>${nextLoanCount}회차 대출 (상환율 ${nextLoanRate}%)</strong>을 신청할 수 있습니다.</p>
+                                    </div>
+                                    <button onclick="openRescueQuizModal()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black rounded-2xl shadow-xl transition font-title text-base flex items-center justify-center gap-2 badge-glow">
+                                        <i class="fa-solid fa-file-pen text-lg"></i>
+                                        <span>${nextLoanCount}회차 대출 퀴즈 도전 (이율 ${nextLoanRate}%)</span>
+                                    </button>
+                                </div>
+                            `}
+                        ` : `
+                            <div id="clientBiddingForm" class="glass-panel rounded-2xl p-5 space-y-4 border border-amber-500/30">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-bold text-sm text-slate-300 font-title"><i class="fa-solid fa-gavel text-amber-400 mr-2"></i>답안 및 투자 금액 선택</h3>
+                                </div>
+
+                                ${q.type === 'ox' ? `
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button onclick="clientSelectChoice('O')" id="btnChoiceO" ${myTeam.submitted ? 'disabled' : ''} class="py-3 rounded-2xl font-bold border text-sm transition ${currentChoice === 'O' ? 'bg-amber-600 border-amber-400 text-white shadow-lg' : 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800'}">
+                                            ⭕ O (그렇다)
+                                        </button>
+                                        <button onclick="clientSelectChoice('X')" id="btnChoiceX" ${myTeam.submitted ? 'disabled' : ''} class="py-3 rounded-2xl font-bold border text-sm transition ${currentChoice === 'X' ? 'bg-rose-600 border-rose-400 text-white shadow-lg' : 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800'}">
+                                            ❌ X (아니다)
+                                        </button>
+                                    </div>
+                                ` : ''}
+
+                                ${q.type === 'choice' ? `
+                                    <div class="grid grid-cols-${q.options.length > 3 ? '4' : '3'} gap-2">
+                                        ${q.options.map(function(opt, optIdx) {
+                                            var num = optIdx + 1;
+                                            var isSelected = (parseInt(currentChoice) === num);
+                                            var numIcons = ['①', '②', '③', '④', '⑤'];
+                                            return `
+                                                <button onclick="clientSelectChoice(${num})" id="btnChoiceOpt_${num}" ${myTeam.submitted ? 'disabled' : ''} class="py-3 rounded-2xl font-bold border text-sm transition ${isSelected ? 'bg-amber-500 border-amber-300 text-slate-950 font-black shadow-lg scale-105' : 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800'}">
+                                                    ${numIcons[optIdx] || num}
+                                                </button>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                ` : ''}
+
+                                ${q.type === 'short' ? `
+                                    <div class="space-y-1.5">
+                                        <label class="block text-xs font-bold text-slate-400 text-left">✍️ 주관식 정답 입력</label>
+                                        <input type="text" id="shortAnswerInput" value="${currentChoice || ''}" placeholder="정답 단어를 입력하세요." oninput="clientUpdateShortInput(this.value)" ${myTeam.submitted ? 'disabled' : ''} class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-center text-base font-bold text-amber-300 focus:outline-none focus:border-amber-400">
+                                    </div>
+                                ` : ''}
+
+                                <div class="space-y-2 pt-1">
+                                    <div class="flex justify-between text-xs text-slate-400">
+                                        <span>문제 투자 금액 (보유 자본: ${maxPt}pt / 5pt 단위)</span>
+                                        <span id="bidValueDisplay" class="text-amber-300 font-black text-sm">${currentBid} pt</span>
+                                    </div>
+                                    <input type="range" id="bidRangeInput" min="${minPt}" max="${maxPt}" step="5" value="${currentBid}" oninput="clientUpdateBid(this.value)" ${myTeam.submitted ? 'disabled' : ''} class="w-full accent-amber-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                                </div>
+
+                                <button onclick="clientSubmitBid()" id="btnSubmitBid" ${!currentChoice ? 'disabled' : ''} class="w-full py-3.5 rounded-xl font-black transition font-title text-base flex items-center justify-center gap-2 ${myTeam.submitted ? 'bg-emerald-700 text-emerald-100 cursor-default' : (currentChoice ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg' : 'bg-slate-800 text-slate-500 cursor-not-allowed')}">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>${myTeam.submitted ? '투자 제출 완료 (수정 가능)' : '투자 확정하기'}</span>
+                                </button>
+                            </div>
+                        `}
+                    ` : `
+                        <div class="glass-panel rounded-2xl p-6 text-center space-y-3 border-2 ${ isCorrect ? 'border-emerald-500 bg-emerald-950/20' : 'border-rose-500 bg-rose-950/20'}">
+                            <div class="text-3xl">
+                                ${ isCorrect ? '🎉' : '💥'}
+                            </div>
+                            <h3 class="text-xl font-black font-title ${ isCorrect ? 'text-emerald-300' : 'text-rose-300'}">
+                                ${ isCorrect ? '투자 성공! 수익 획득' : '투자 실패! 자본금 차감'}
+                            </h3>
+                            <div class="text-xs text-slate-300">
+                                내 제출: <strong class="text-amber-300">${window.formatChoiceDisplay(q, myTeam.choice)}</strong> | 정답: <strong class="text-emerald-400">${window.formatChoiceDisplay(q, q.answer)}</strong>
+                            </div>
+                            <p class="text-xs text-slate-400 pt-1">
+                                선생님의 다음 문제 진행을 기다려주세요.
+                            </p>
+                        </div>
+                    `}
+                </div>
+            `;
+        };
+
+        window.openRescueQuizModal = function() {
+            playSound('click');
+            var data = window.gameState.roomData;
+            var myTeamId = window.gameState.myTeamId;
+            var myTeam = data ? data.teams[myTeamId] : null;
+
+            var loanCount = myTeam ? (myTeam.loanCount || 0) : 0;
+            var nextAttempt = loanCount + 1;
+            var ratePercent = 100 + (nextAttempt * 10);
+            var rateMultiplier = 1.0 + (nextAttempt * 0.1);
+
+            var titleElem = document.getElementById('rescueQuizTitle');
+            var rateBadge = document.getElementById('currentLoanRateBadge');
+            var rangeElem = document.getElementById('requestedLoanRange');
+
+            if (titleElem) titleElem.innerText = "대출 심사 개념 퀴즈 (" + nextAttempt + "회차 대출)";
+            if (rateBadge) rateBadge.innerText = ratePercent + "%";
+            if (rangeElem) {
+                rangeElem.dataset.rate = rateMultiplier.toFixed(2);
+                window.updateLoanEstimate(rangeElem.value);
+            }
+
+            document.getElementById('rescueQuizModal').classList.remove('hidden');
+        };
+
+        window.updateLoanEstimate = function(val) {
+            var rangeElem = document.getElementById('requestedLoanRange');
+            var rate = rangeElem && rangeElem.dataset.rate ? parseFloat(rangeElem.dataset.rate) : 1.1;
+
+            var display = document.getElementById('requestedLoanDisplay');
+            var estDisplay = document.getElementById('repaymentEstimateDisplay');
+            if (display) display.innerText = val + ' pt';
+            if (estDisplay) estDisplay.innerText = Math.round(parseInt(val) * rate);
+        };
+
+        window.clientRepayLoan = function() {
+            var data = window.gameState.roomData;
+            var myTeamId = window.gameState.myTeamId;
+            var myTeam = data ? data.teams[myTeamId] : null;
+
+            if (!myTeam || !myTeam.debt || myTeam.debt <= 0) return;
+
+            if (myTeam.points < myTeam.debt) {
+                window.showToast("❌ 자본금이 부족하여 대출을 상환할 수 없습니다. (필요: " + myTeam.debt + " pt / 보유: " + myTeam.points + " pt)");
+                return;
+            }
+
+            playSound('correct');
+            myTeam.points -= myTeam.debt;
+            var repaidAmt = myTeam.debt;
+            myTeam.debt = 0;
+
+            if (window.db) {
+                window.getRoomDocRef(data.roomId).update({ teams: data.teams });
+            } else {
+                window.renderClientDashboard();
+            }
+            window.showToast("🎉 대출금 " + repaidAmt + " pt를 성공적으로 전액 상환했습니다!");
+        };
+
+        window.submitRescueAnswer = function(answer) {
+            var isCorrect = (answer === true);
+
+            if (isCorrect) {
+                playSound('correct');
+                document.getElementById('rescueQuizModal').classList.add('hidden');
+                
+                var data = window.gameState.roomData;
+                var myTeamId = window.gameState.myTeamId;
+                var loanRange = document.getElementById('requestedLoanRange');
+                var reqAmount = loanRange ? parseInt(loanRange.value) : 50;
+
+                data.teams[myTeamId].rescueRequested = true;
+                data.teams[myTeamId].requestedLoanAmount = reqAmount;
+
+                if (window.db) {
+                    window.getRoomDocRef(data.roomId).update({ teams: data.teams });
+                } else {
+                    window.renderClientDashboard();
+                }
+                var attemptNum = ((data.teams[myTeamId].loanCount || 0) + 1);
+                window.showToast("✅ 대출 심사 퀴즈 정답! 선생님에게 " + attemptNum + "회차 대출 신청(" + reqAmount + "pt)이 제출되었습니다.");
+            } else {
+                playSound('wrong');
+                window.showToast("❌ 오답입니다! 지표면 근처에서 빨리 식으면 알갱이가 뭉칠 시간이 부족해 결정이 작아집니다(화산암). 다시 도전하세요.");
+            }
+        };
+
+        window.clientUpdateShortInput = function(val) {
+            window.clientLocalInput.choice = val;
+            var btnSubmit = document.getElementById('btnSubmitBid');
+            if (btnSubmit) {
+                var hasValidChoice = val && val.trim().length > 0;
+                btnSubmit.disabled = !hasValidChoice;
+                if (hasValidChoice) {
+                    btnSubmit.className = 'w-full py-3.5 rounded-xl font-black transition font-title text-base flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg';
+                } else {
+                    btnSubmit.className = 'w-full py-3.5 rounded-xl font-black transition font-title text-base flex items-center justify-center gap-2 bg-slate-800 text-slate-500 cursor-not-allowed';
+                }
+            }
+        };
+
+        window.clientSelectChoice = function(choice) {
+            playSound('click');
+            window.clientLocalInput.choice = choice;
+
+            var data = window.gameState.roomData;
+            var q = data ? window.questionBank[data.currentQuestionIdx] : null;
+
+            if (q) {
+                if (q.type === 'ox') {
+                    var btnO = document.getElementById('btnChoiceO');
+                    var btnX = document.getElementById('btnChoiceX');
+                    if (btnO && btnX) {
+                        if (choice === 'O') {
+                            btnO.className = 'py-3 rounded-2xl font-bold border text-sm transition bg-amber-600 border-amber-400 text-white shadow-lg';
+                            btnX.className = 'py-3 rounded-2xl font-bold border text-sm transition bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800';
+                        } else {
+                            btnO.className = 'py-3 rounded-2xl font-bold border text-sm transition bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800';
+                            btnX.className = 'py-3 rounded-2xl font-bold border text-sm transition bg-rose-600 border-rose-400 text-white shadow-lg';
+                        }
+                    }
+                } else if (q.type === 'choice') {
+                    for (var opt = 1; opt <= q.options.length; opt++) {
+                        var b = document.getElementById('btnChoiceOpt_' + opt);
+                        if (b) {
+                            if (parseInt(choice) === opt) {
+                                b.className = 'py-3 rounded-2xl font-bold border text-sm transition bg-amber-500 border-amber-300 text-slate-950 font-black shadow-lg scale-105';
+                            } else {
+                                b.className = 'py-3 rounded-2xl font-bold border text-sm transition bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800';
+                            }
+                        }
+                    }
+                }
+            }
+
+            var btnSubmit = document.getElementById('btnSubmitBid');
+            if (btnSubmit) {
+                var hasValidChoice = choice !== null && choice !== undefined && choice.toString().trim().length > 0;
+                btnSubmit.disabled = !hasValidChoice;
+                if (hasValidChoice) {
+                    btnSubmit.className = 'w-full py-3.5 rounded-xl font-black transition font-title text-base flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg';
+                } else {
+                    btnSubmit.className = 'w-full py-3.5 rounded-xl font-black transition font-title text-base flex items-center justify-center gap-2 bg-slate-800 text-slate-500 cursor-not-allowed';
+                }
+            }
+        };
+
+        window.clientUpdateBid = function(val) {
+            window.clientLocalInput.bid = parseInt(val);
+
+            var display = document.getElementById('bidValueDisplay');
+            if (display) {
+                var data = window.gameState.roomData;
+                var myTeamId = window.gameState.myTeamId;
+                var myTeam = data && data.teams ? data.teams[myTeamId] : null;
+                var maxPt = myTeam ? myTeam.points : 100;
+                var clampedVal = Math.min(parseInt(val), maxPt);
+                display.innerText = clampedVal + ' pt';
+            }
+        };
+
+        window.clientSubmitBid = function() {
+            playSound('click');
+            var data = window.gameState.roomData;
+            var myTeamId = window.gameState.myTeamId;
+            var myTeam = data.teams[myTeamId];
+            
+            if (window.clientLocalInput.choice === null || window.clientLocalInput.choice === undefined || window.clientLocalInput.choice.toString().trim() === '') {
+                window.showToast("답안을 먼저 선택하거나 입력해 주세요!");
+                return;
+            }
+
+            if (!myTeam) {
+                window.showToast("모둠 정보가 올바르지 않습니다. 다시 접속해 주세요.");
+                return;
+            }
+
+            var rawBid = window.clientLocalInput.bid !== undefined ? window.clientLocalInput.bid : 5;
+            var finalBid = Math.min(rawBid, myTeam.points);
+            if (myTeam.points < finalBid) {
+                finalBid = myTeam.points; 
+            }
+
+            myTeam.choice = window.clientLocalInput.choice;
+            myTeam.currentBid = finalBid;
+            myTeam.submitted = true;
+
+            if (window.db) {
+                window.getRoomDocRef(data.roomId).update({ teams: data.teams }).then(function() {
+                    window.showToast("✅ 답안과 투자가 성공적으로 제출되었습니다!");
+                    window.renderClientDashboard();
+                }).catch(function(err) {
+                    console.error("투자 제출 에러:", err);
+                    window.showToast("❌ 제출 중 오류가 발생했습니다. 다시 시도해 주세요.");
+                });
+            } else {
+                window.renderClientDashboard();
+            }
+        };
+
+        window.renderDebriefingViewHost = function() {
+            playSound('correct');
+            var data = window.gameState.roomData;
+            data.status = 'debriefing';
+
+            if (window.db) {
+                window.getRoomDocRef(data.roomId).update({ status: 'debriefing' });
+            }
+
+            var teamsList = Object.values(data.teams).sort(function(a, b) {
+                var netA = Math.max(0, a.points - (a.debt || 0));
+                var netB = Math.max(0, b.points - (b.debt || 0));
+                return netB - netA;
+            });
+            var container = document.getElementById('appContainer');
+
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto w-full space-y-6 my-auto py-4">
+                    <div class="glass-panel rounded-3xl p-6 text-center glow-effect border-2 border-amber-500/40 space-y-2">
+                        <div class="inline-block bg-amber-500/20 text-amber-400 p-3 rounded-2xl border border-amber-400/30">
+                            <i class="fa-solid fa-trophy text-4xl"></i>
+                        </div>
+                        <h2 class="text-3xl font-black font-title text-amber-300">최종 투자 결과 & 지권 디브리핑</h2>
+                        <p class="text-sm text-slate-300">중학교 2학년 과학 지권 단원 모둠 탐구 완수를 축하합니다!</p>
+                    </div>
+
+                    <div class="glass-panel rounded-3xl p-6 space-y-4">
+                        <h3 class="text-lg font-bold font-title text-amber-300 flex items-center gap-2">
+                            <i class="fa-solid fa-ranking-star"></i> 최종 순위표 (1~${teamsList.length}모둠전)
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[48vh] overflow-y-auto p-1">
+                            ${teamsList.map(function(team, idx) {
+                                var debt = team.debt || 0;
+                                var netScore = Math.max(0, team.points - debt);
+                                var loanCount = team.loanCount || 0;
+                                var rescueBadge = loanCount > 0 
+                                    ? (debt > 0 
+                                        ? `<span class="text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded font-bold ml-2">대출 ${loanCount}회 (미상환 ${debt}p 차감)</span>` 
+                                        : `<span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold ml-2">대출 ${loanCount}회 (전액 상환 완료! ✨)</span>`)
+                                    : `<span class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-bold ml-2">대출 미이용 ✨</span>`;
+
+                                return `
+                                    <div class="bg-slate-900/80 p-3.5 rounded-2xl border ${idx === 0 ? 'border-amber-400/60 bg-amber-950/20' : 'border-slate-700/60'} flex justify-between items-center">
+                                        <div class="flex items-center gap-2.5 truncate">
+                                            <span class="w-7 h-7 rounded-xl font-black text-xs flex items-center justify-center shrink-0 ${idx === 0 ? 'bg-amber-400 text-slate-950' : idx === 1 ? 'bg-slate-300 text-slate-950' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-slate-800 text-slate-400'}">
+                                                ${idx + 1}
+                                            </span>
+                                            <div class="truncate">
+                                                <div class="font-bold text-sm text-slate-100 font-title truncate">${team.name}</div>
+                                                ${rescueBadge}
+                                            </div>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <div class="text-emerald-400 font-black text-base">
+                                                ${netScore} pt
+                                            </div>
+                                            ${debt > 0 ? `<div class="text-[10px] text-slate-400">보유: ${team.points}p</div>` : ''}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <button onclick="finishClassAndClear()" class="w-full py-4 bg-amber-600 hover:bg-amber-500 text-slate-950 font-black rounded-2xl shadow-xl transition text-base font-title">
+                        수업 완수 및 메인으로 돌아가기
+                    </button>
+                </div>
+            `;
+        };
+
+        window.finishClassAndClear = function() {
+            localStorage.removeItem('earth_strata_team_host_pin');
+            if (window.hostPingInterval) clearInterval(window.hostPingInterval);
+            if (window.roomUnsubscribe) {
+                window.roomUnsubscribe();
+                window.roomUnsubscribe = null;
+            }
+            window.gameState.role = null;
+            window.gameState.roomId = null;
+            document.getElementById('roomPinBadge').classList.add('hidden');
+            window.renderRoleSelection();
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', window.initApp);
+        } else {
+            window.initApp();
+        }
+    </script>
+</body>
+</html>
