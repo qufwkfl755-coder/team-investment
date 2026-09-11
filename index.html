@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지권 문제 투자 (모둠전) - 실시간 멀티 디바이스 웹앱</title>
+    <title>식물과 에너지 문제 투자 (모둠전) - 실시간 멀티 디바이스 웹앱</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -53,13 +53,13 @@
     <header class="glass-panel rounded-2xl p-3.5 mb-3 flex flex-wrap justify-between items-center shadow-lg border-b border-indigo-500/20">
         <div class="flex items-center gap-3">
             <div class="bg-indigo-600/30 p-2.5 rounded-xl border border-indigo-400/30 text-indigo-400 text-xl">
-                <i class="fa-solid fa-mountain fa-bounce" style="--fa-animation-duration: 4s;"></i>
+                <i class="fa-solid fa-leaf fa-bounce" style="--fa-animation-duration: 4s;"></i>
             </div>
             <div>
                 <h1 class="text-lg md:text-xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-300 to-emerald-300 font-title">
-                    지권 문제 투자 <span id="gameModeBadgeHeader" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-400/30 font-sans">모둠전</span>
+                    식물과 에너지 문제 투자 <span id="gameModeBadgeHeader" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-400/30 font-sans">모둠전</span>
                 </h1>
-                <p class="text-xs text-slate-400">중2 과학 [지구계, 지권의 층상 구조, 암석과 광물] 모둠별 게이미피케이션 수업 도구</p>
+                <p class="text-xs text-slate-400">중2 과학 [식물과 에너지] 모둠별 게이미피케이션 수업 도구</p>
             </div>
         </div>
 
@@ -83,7 +83,7 @@
     </main>
 
     <footer class="mt-4 text-center text-xs text-slate-500 py-1.5 border-t border-slate-800/60">
-        수업디자인 연수 오전 강의용 | 중학교 2학년 과학 [지권 문제 투자 시스템 - 모둠전]
+        수업디자인 연수 오전 강의용 | 중학교 2학년 과학 [식물과 에너지 문제 투자 시스템 - 모둠전]
     </footer>
 
     <div id="rescueQuizModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
@@ -99,8 +99,9 @@
             
             <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-3">
                 <div class="text-xs text-amber-400 font-bold"><i class="fa-solid fa-circle-question"></i> 개념 확인 문제</div>
+                <!-- 식물과 에너지 단원에 맞게 구제 퀴즈 수정 -->
                 <p class="text-sm font-semibold text-slate-100" id="rescueQuizStatement">
-                    지표면 근처에서 마그마가 빨리 식어서 만들어진 화산암은 결정의 크기가 작다. (O/X)
+                    광합성에 필요한 물은 잎의 기공을 통해 흡수된다. (O/X)
                 </p>
             </div>
 
@@ -132,7 +133,7 @@
             roomId: null,
             myTeamId: null,
             roomData: null,
-            soundEnabled: true,
+            soundEnabled: localStorage.getItem('plant_energy_sound_enabled') !== 'false',
             setupCount: 5
         };
 
@@ -141,11 +142,13 @@
             bid: 10
         };
 
+        window.currentRescueQuestion = null;
+
         window.db = null;
         window.auth = null;
         window.roomUnsubscribe = null;
         window.hostPingInterval = null;
-        window.appId = 'earth-strata-investment-team';
+        window.appId = 'plant-energy-investment-team';
 
         var resolveAuthPromise;
         window.authReady = new Promise(function(resolve) {
@@ -158,102 +161,116 @@
         };
 
         window.questionBank = [
-            { 
-                id: 1, 
-                type: "ox",
-                category: "지구계", 
-                statement: "1. 지구를 둘러싸고 있는 대기와 그 공간에 존재하는 태양, 달 등의 천체들을 기권이라고 한다.", 
-                answer: "X",
-                explanation: "정답: X | 지구를 둘러싼 대기는 기권이지만, 태양이나 달 등 우주 공간의 천체들은 '외권'에 속합니다." 
-            },
-            { 
-                id: 2, 
+            {
+                id: 1,
                 type: "choice",
-                category: "지권의 층상 구조", 
-                statement: "2. 지권의 층상 구조에 대한 설명으로 옳지 않은 것은?", 
-                options: [
-                    "지권은 4개의 층으로 된 층상 구조로 이루어져 있다.",
-                    "지권의 가장 바깥쪽에 있는 층을 지각이라고 한다.",
-                    "지권의 가장 많은 부피를 차지하는 층은 맨틀이다.",
-                    "내핵은 지권 내부구조 중 유일하게 액체 상태로 추정된다."
-                ],
-                answer: 4,
-                explanation: "정답: ④번 | 지권 내부 구조 중 유일하게 액체 상태로 추정되는 층은 '외핵'입니다. 내핵은 고체 상태입니다." 
-            },
-            { 
-                id: 3, 
-                type: "short",
-                category: "암석과 광물", 
-                statement: "3. 지각을 이루는 암석 중 마그마가 지표로 분출하여 빠르게 식어 생성된 암석을 무엇이라 하는가?", 
-                answer: "화산암",
-                acceptedAnswers: ["화산암"],
-                explanation: "정답: 화산암 | 마그마가 지표면 근처에서 빠르게 식어 굳어진 암석을 '화산암'이라고 부릅니다." 
-            },
-            { 
-                id: 4, 
-                type: "ox",
-                category: "암석과 광물", 
-                statement: "4. 마그마가 지하 깊은 곳에서 천천히 식어 만들어진 심성암의 경우 결정의 크기가 작다.", 
-                answer: "X",
-                explanation: "정답: X | 심성암은 지하 깊은 곳에서 천천히 식어 광물 결정이 충분히 자라므로 결정(알갱이)의 크기가 큽니다." 
-            },
-            { 
-                id: 5, 
-                type: "choice",
-                category: "변성암", 
-                statement: "5. 다음 중 변성암에서 나타날 수 있는 특징은?", 
-                options: [
-                    "엽리",
-                    "층리",
-                    "화석"
-                ],
-                answer: 1,
-                explanation: "정답: ①번 (엽리) | 엽리는 높은 열과 압력을 받아 광물이 눌려 생기는 변성암의 특징입니다. (층리와 화석은 퇴적암의 특징)" 
-            },
-            { 
-                id: 6, 
-                type: "short",
-                category: "풍화 작용", 
-                statement: "6. 암석이 오랜 시간 동안 물, 공기, 생물 등의 작용으로 작게 부서지거나 성분이 변하는 현상을 무엇이라 하는가?", 
-                answer: "풍화",
-                acceptedAnswers: ["풍화", "풍화작용", "풍화 작용"],
-                explanation: "정답: 풍화 (또는 풍화 작용) | 암석이 물, 공기, 생물 등의 작용으로 잘게 부서지거나 성분이 변하는 현상입니다." 
-            },
-            { 
-                id: 7, 
-                type: "choice",
-                category: "토양의 형성", 
-                statement: "7. 토양을 4개의 층으로 구분할 때, 빗물에 녹은 물질과 진흙 등이 쌓인 층의 이름은?", 
-                options: [
-                    "표토",
-                    "심토",
-                    "모질물",
-                    "기반암"
-                ],
+                category: "식물과 에너지",
+                statement: "1. 식물 세포에서 광합성이 일어나는 장소는 어디인가?",
+                options: ["물관", "엽록체", "마이토콘드리아", "기공"],
                 answer: 2,
-                explanation: "정답: ②번 (심토) | 표토에서 빗물에 녹은 물질과 고운 진흙 등이 아래로 씻겨 내려와 쌓여 형성된 층은 '심토'입니다." 
+                explanation: "정답: ②번"
             },
-            { 
-                id: 8, 
-                type: "choice",
-                category: "대륙이동설", 
-                statement: "8. 대륙이동설에 대한 설명으로 옳지 않은 것은?", 
-                options: [
-                    "독일의 기상학자 베게너가 주장하였다.",
-                    "과거에 한 덩어리였던 커다란 대륙이 분리되고 이동하여 오늘날과 같은 분포를 이루게 되었다.",
-                    "산맥의 분포, 빙하의 흔적 등을 증거로 제시하였다.",
-                    "대륙이동설은 대륙을 움직이는 힘까지 설명함으로써 인정받았다."
-                ],
-                answer: 4,
-                explanation: "정답: ④번 | 베게너는 대륙이 이동하는 원동력(힘)을 제대로 설명하지 못해 당시에는 학계의 인정을 받지 못했습니다." 
-            },
-            { 
-                id: 9, 
+            {
+                id: 2,
                 type: "ox",
-                category: "판 구조론", 
-                statement: "9. 화산대와 지진대의 분포는 판의 경계와 완전히 일치한다.", 
+                category: "식물과 에너지",
+                statement: "2. 식물의 광합성에는 빛에너지, 이산화 탄소, 물이 모두 필요하다.",
+                answer: "O",
+                explanation: "정답: O"
+            },
+            {
+                id: 3,
+                type: "choice",
+                category: "식물과 에너지",
+                statement: "3. 식물의 광합성으로 처음 만들어지는 양분(가)과 엽록체에 저장되는 양분(나)의 형태로 옳은 것은?",
+                options: ["(가)포도당 (나)녹말", "(가)녹말 (나)포도당", "(가)포도당 (나)설탕", "(가)설탕 (나)녹말"],
+                answer: 1,
+                explanation: "정답: ①번"
+            },
+            {
+                id: 4,
+                type: "ox",
+                category: "식물과 에너지",
+                statement: "4. 광합성에 필요한 이산화 탄소는 주로 뿌리를 통해 식물 안으로 들어온다.",
                 answer: "X",
-                explanation: "정답: X | 화산대와 지진대는 판의 경계와 '대체로' 일치하지만, 판 내부에서도 지진/화산이 일어나므로 '완전히 일치'하지는 않습니다." 
+                explanation: "정답: X"
+            },
+            {
+                id: 5,
+                type: "choice",
+                category: "식물과 에너지",
+                statement: "5. 빛의 세기와 광합성량의 관계에 대한 설명으로 옳은 것은?",
+                options: ["빛이 셀수록 광합성량은 무한정 증가한다.", "빛이 셀수록 광합성량은 감소한다.", "빛이 셀수록 광합성량은 증가하다가 일정 세기 이상이 되면 일정해진다.", "빛의 세기와 광합성량은 관계가 없다."],
+                answer: 3,
+                explanation: "정답: ③번"
+            },
+            {
+                id: 6,
+                type: "ox",
+                category: "식물과 에너지",
+                statement: "6. 식물의 호흡은 낮과 밤에 관계없이 항상 일어나고, 광합성은 낮에만 일어난다.",
+                answer: "O",
+                explanation: "정답: O"
+            },
+            {
+                id: 7,
+                type: "choice",
+                category: "식물과 에너지",
+                statement: "7. 식물의 호흡에 대한 설명으로 옳지 않은 것은?",
+                options: ["양분을 분해하여 에너지를 얻는 과정이다.", "마이토콘드리아에서 일어난다.", "포도당과 산소가 사용된다.", "빛에너지를 흡수하는 과정이다."],
+                answer: 4,
+                explanation: "정답: ④번"
+            },
+            {
+                id: 8,
+                type: "ox",
+                category: "식물과 에너지",
+                statement: "8. 엽록체에 저장된 녹말은 주로 밤에 포도당으로 바뀌어 체관을 따라 이동한다.",
+                answer: "X",
+                explanation: "정답: X"
+            },
+            {
+                id: 9,
+                type: "choice",
+                category: "식물과 에너지",
+                statement: "9. 식물의 부위별 광합성 산물 저장 형태가 바르게 짝지어진 것은?",
+                options: ["포도 - 녹말", "고구마 - 포도당", "콩 - 단백질", "깨 - 설탕"],
+                answer: 3,
+                explanation: "정답: ③번"
+            },
+            {
+                id: 10,
+                type: "choice",
+                category: "식물과 에너지",
+                statement: "10. 온도가 식물의 광합성에 미치는 영향으로 가장 적절한 것은?",
+                options: ["온도가 높을수록 광합성량은 계속 증가한다.", "온도가 높을수록 광합성량은 계속 감소한다.", "일정 온도 이상이 되면 광합성량이 빠르게 감소한다.", "온도는 광합성량에 아무런 영향을 주지 않는다."],
+                answer: 3,
+                explanation: "정답: ③번"
+            },
+            {
+                id: 11,
+                type: "ox",
+                category: "식물과 에너지",
+                statement: "11. 광합성 산물은 뿌리, 줄기, 열매 등에 녹말의 형태로만 저장된다.",
+                answer: "X",
+                explanation: "정답: X"
+            },
+            {
+                id: 12,
+                type: "ox",
+                category: "식물과 에너지",
+                statement: "12. 광합성과 호흡은 서로 반대되는 과정으로, 광합성에서 생성된 물질은 호흡에 이용되고 호흡에서 생성된 물질은 광합성에 이용된다.",
+                answer: "O",
+                explanation: "정답: O"
+            },
+            {
+                id: 13,
+                type: "choice",
+                category: "식물과 에너지",
+                statement: "13. 여름철 열대야가 지속될 때 농작물의 당도가 낮아지는 이유로 가장 알맞은 것은?",
+                options: ["밤에 광합성을 너무 많이 해서", "밤에 온도가 높아 호흡을 많이 하므로 양분 소모가 커서", "밤에 기공이 닫혀 이산화 탄소 흡수를 못해서", "밤에 온도가 너무 높으면 체관이 막혀서 설탕이 잘 이동을 못해서"],
+                answer: 2,
+                explanation: "정답: ②번"
             }
         ];
 
@@ -341,8 +358,15 @@
 
         window.toggleSound = function() {
             window.gameState.soundEnabled = !window.gameState.soundEnabled;
-            document.getElementById('soundText').innerText = window.gameState.soundEnabled ? '효과음 ON' : '효과음 OFF';
-            document.getElementById('soundIcon').className = window.gameState.soundEnabled ? 'fa-solid fa-volume-high text-amber-400' : 'fa-solid fa-volume-xmark text-slate-500';
+            localStorage.setItem('plant_energy_sound_enabled', window.gameState.soundEnabled);
+            window.updateSoundUI();
+        };
+
+        window.updateSoundUI = function() {
+            var textElem = document.getElementById('soundText');
+            var iconElem = document.getElementById('soundIcon');
+            if (textElem) textElem.innerText = window.gameState.soundEnabled ? '효과음 ON' : '효과음 OFF';
+            if (iconElem) iconElem.className = window.gameState.soundEnabled ? 'fa-solid fa-volume-high text-amber-400' : 'fa-solid fa-volume-xmark text-slate-500';
         };
 
         window.exitToHome = function() {
@@ -395,7 +419,9 @@
                 if (resolveAuthPromise) resolveAuthPromise();
             }
 
-            var savedPin = localStorage.getItem('earth_strata_team_host_pin');
+            window.updateSoundUI();
+
+            var savedPin = localStorage.getItem('plant_energy_team_host_pin');
             if (savedPin && window.db) {
                 try {
                     var docSnap = await window.getRoomDocRef(savedPin).get();
@@ -412,7 +438,7 @@
         };
 
         window.renderRoleSelection = function() {
-            var savedPin = localStorage.getItem('earth_strata_team_host_pin');
+            var savedPin = localStorage.getItem('plant_energy_team_host_pin');
             var container = document.getElementById('appContainer');
 
             container.innerHTML = `
@@ -568,7 +594,7 @@
             }
 
             statusDiv.className = "text-[11px] mt-1 text-indigo-300 text-center font-bold";
-            statusDiv.innerText = retryCount > 0 ? "🔍 방 정보를 검색 중입니다 (" + retryCount + "/3)..." : "🔍 방 정보 확인 중...";
+                statusDiv.innerText = retryCount > 0 ? "🔍 방 정보를 검색 중입니다 (" + retryCount + "/3)..." : "🔍 방 정보 확인 중...";
 
             if (window.db) {
                 try {
@@ -641,7 +667,7 @@
                         window.gameState.roomId = pin;
                         window.gameState.roomData = docSnap.data();
 
-                        localStorage.setItem('earth_strata_team_host_pin', pin);
+                        localStorage.setItem('plant_energy_team_host_pin', pin);
 
                         document.getElementById('pinDisplay').innerText = pin;
                         document.getElementById('roomPinBadge').classList.remove('hidden');
@@ -690,7 +716,7 @@
             window.gameState.role = 'host';
             window.gameState.roomId = pin;
 
-            localStorage.setItem('earth_strata_team_host_pin', pin);
+            localStorage.setItem('plant_energy_team_host_pin', pin);
 
             document.getElementById('pinDisplay').innerText = pin;
             document.getElementById('roomPinBadge').classList.remove('hidden');
@@ -826,7 +852,7 @@
 
                     <button onclick="startHostGame()" class="w-full py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-600 hover:from-amber-400 hover:to-emerald-500 text-slate-950 font-black rounded-2xl shadow-xl transition font-title text-lg flex items-center justify-center gap-3">
                         <i class="fa-solid fa-play text-xl animate-bounce"></i>
-                        <span>지권 문제 투자 시작하기 (문항 1 진행)</span>
+                        <span>식물과 에너지 문제 투자 시작하기 (문항 1 진행)</span>
                     </button>
                 </div>
             `;
@@ -991,8 +1017,12 @@
                         }).join('')}
                     </div>
 
-                    <div class="flex justify-end pt-1">
+                    <div class="flex justify-end pt-1 gap-2">
                         ${!data.isRevealed ? `
+                            <button onclick="skipHostQuestion()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold rounded-xl transition text-sm md:text-base font-title flex items-center gap-2">
+                                <i class="fa-solid fa-forward-step"></i>
+                                <span class="hidden sm:inline">문제 건너뛰기</span>
+                            </button>
                             <button onclick="revealHostResult()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-lg transition text-sm md:text-base font-title flex items-center gap-2">
                                 <i class="fa-solid fa-gavel"></i>
                                 <span>정산 발표 & 결과 공개 (${submittedCount}/${totalCount} 제출)</span>
@@ -1151,6 +1181,39 @@
             }
         };
 
+        window.skipHostQuestion = function() {
+            playSound('click');
+            var data = window.gameState.roomData;
+            
+            if (data.currentQuestionIdx < window.questionBank.length - 1) {
+                data.currentQuestionIdx++;
+                data.isRevealed = false;
+
+                window.clientLocalInput = { choice: null, bid: 5 };
+
+                Object.values(data.teams).forEach(function(t) {
+                    t.choice = null;
+                    t.currentBid = Math.min(5, t.points);
+                    t.submitted = false;
+                });
+
+                if (window.db) {
+                    window.getRoomDocRef(data.roomId).update({
+                        currentQuestionIdx: data.currentQuestionIdx,
+                        isRevealed: false,
+                        teams: data.teams,
+                        updatedAt: Date.now()
+                    });
+                } else {
+                    window.renderHostScreen();
+                }
+                window.showToast("⏭️ 문제를 건너뛰었습니다.");
+            } else {
+                window.renderDebriefingViewHost();
+                window.showToast("⏭️ 마지막 문제를 건너뛰어 최종 리포트로 이동합니다.");
+            }
+        };
+
         window.joinClientRoom = async function() {
             playSound('click');
             await window.authReady;
@@ -1273,7 +1336,7 @@
                     <div class="max-w-md mx-auto w-full space-y-5 my-auto text-center p-4">
                         <div class="glass-panel rounded-3xl p-6 border-2 border-emerald-500/40 glow-effect space-y-4">
                             <div class="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center justify-center text-3xl mx-auto">
-                                <i class="fa-solid fa-mountain fa-spin"></i>
+                                <i class="fa-solid fa-leaf fa-spin"></i>
                             </div>
 
                             <div>
@@ -1291,7 +1354,7 @@
                                 </div>
                                 <hr class="border-slate-800 my-2">
                                 <p class="text-xs text-slate-400 leading-relaxed">
-                                    💡 선생님이 스크린 화면에서 <span class="text-amber-300 font-bold">'지권 문제 투자 시작하기'</span>를 누르면 첫 번째 문제가 나타납니다.
+                                    💡 선생님이 스크린 화면에서 <span class="text-amber-300 font-bold">'식물과 에너지 문제 투자 시작하기'</span>를 누르면 첫 번째 문제가 나타납니다.
                                 </p>
                             </div>
 
@@ -1507,7 +1570,11 @@
                                         <span>문제 투자 금액 (보유 자본: ${maxPt}pt / 5pt 단위)</span>
                                         <span id="bidValueDisplay" class="text-amber-300 font-black text-sm">${currentBid} pt</span>
                                     </div>
-                                    <input type="range" id="bidRangeInput" min="${minPt}" max="${maxPt}" step="5" value="${currentBid}" oninput="clientUpdateBid(this.value)" ${myTeam.submitted ? 'disabled' : ''} class="w-full accent-amber-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="clientAdjustBid(-5)" type="button" ${myTeam.submitted ? 'disabled' : ''} class="w-10 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold flex items-center justify-center transition disabled:opacity-50 disabled:cursor-not-allowed">-5</button>
+                                        <input type="range" id="bidRangeInput" min="${minPt}" max="${maxPt}" step="5" value="${currentBid}" oninput="clientUpdateBid(this.value)" ${myTeam.submitted ? 'disabled' : ''} class="w-full accent-amber-500 bg-slate-800 rounded-lg h-2 cursor-pointer">
+                                        <button onclick="clientAdjustBid(5)" type="button" ${myTeam.submitted ? 'disabled' : ''} class="w-10 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold flex items-center justify-center transition disabled:opacity-50 disabled:cursor-not-allowed">+5</button>
+                                    </div>
                                 </div>
 
                                 <button onclick="clientSubmitBid()" id="btnSubmitBid" ${!currentChoice ? 'disabled' : ''} class="w-full py-3.5 rounded-xl font-black transition font-title text-base flex items-center justify-center gap-2 ${myTeam.submitted ? 'bg-emerald-700 text-emerald-100 cursor-default' : (currentChoice ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg' : 'bg-slate-800 text-slate-500 cursor-not-allowed')}">
@@ -1547,16 +1614,55 @@
             var ratePercent = 100 + (nextAttempt * 10);
             var rateMultiplier = 1.0 + (nextAttempt * 0.1);
 
+            // 랜덤 문제 출제 로직 추가
+            var oxQuestions = window.questionBank.filter(function(q) { return q.type === 'ox'; });
+            window.currentRescueQuestion = oxQuestions[Math.floor(Math.random() * oxQuestions.length)];
+            var statementElem = document.getElementById('rescueQuizStatement');
+            if (statementElem) statementElem.innerText = window.currentRescueQuestion.statement;
+
             var titleElem = document.getElementById('rescueQuizTitle');
             var rateBadge = document.getElementById('currentLoanRateBadge');
             var rangeElem = document.getElementById('requestedLoanRange');
 
             if (titleElem) titleElem.innerText = "대출 심사 개념 퀴즈 (" + nextAttempt + "회차 대출)";
             if (rateBadge) rateBadge.innerText = ratePercent + "%";
+            
+            // --- 평균 연동제: 학급 평균 자본금 계산 및 대출 상한선 설정 로직 추가 ---
+            var teamsList = data ? Object.values(data.teams) : [];
+            var totalPoints = 0;
+            var teamCount = teamsList.length;
+            
+            teamsList.forEach(function(t) {
+                totalPoints += (t.points || 0);
+            });
+            
+            var averagePoints = teamCount > 0 ? Math.floor(totalPoints / teamCount) : 50;
+            // 10단위로 맞추기 (내림)
+            var maxLoanLimit = Math.floor(averagePoints / 10) * 10;
+            
+            // 평균이 너무 낮더라도 최소 50pt는 대출받을 수 있도록 최저 한도 보장
+            if (maxLoanLimit < 50) {
+                maxLoanLimit = 50;
+            }
+
             if (rangeElem) {
+                rangeElem.max = maxLoanLimit; // 슬라이더의 최댓값을 학급 평균으로 동적 변경
+                
+                // 만약 현재 슬라이더의 값이 새로 설정된 최댓값보다 크다면, 최댓값으로 조정
+                if (parseInt(rangeElem.value) > maxLoanLimit) {
+                    rangeElem.value = maxLoanLimit;
+                }
+                
                 rangeElem.dataset.rate = rateMultiplier.toFixed(2);
                 window.updateLoanEstimate(rangeElem.value);
             }
+            
+            // 상한선 안내 문구 업데이트 (UI 피드백)
+            var loanRateSubtitle = document.getElementById('loanRateSubtitle');
+            if (loanRateSubtitle) {
+                loanRateSubtitle.innerHTML = `희망 대출 액수를 선택하고 퀴즈를 맞추세요!<br><span class="text-amber-300 font-bold">(현재 학급 평균 자본금: ${averagePoints}pt → 최대 대출 한도: ${maxLoanLimit}pt)</span>`;
+            }
+            // ----------------------------------------------------------------------
 
             document.getElementById('rescueQuizModal').classList.remove('hidden');
         };
@@ -1597,7 +1703,10 @@
         };
 
         window.submitRescueAnswer = function(answer) {
-            var isCorrect = (answer === true);
+            if (!window.currentRescueQuestion) return;
+
+            var correctAnswerBool = (window.currentRescueQuestion.answer === 'O');
+            var isCorrect = (answer === correctAnswerBool);
 
             if (isCorrect) {
                 playSound('correct');
@@ -1620,7 +1729,20 @@
                 window.showToast("✅ 대출 심사 퀴즈 정답! 선생님에게 " + attemptNum + "회차 대출 신청(" + reqAmount + "pt)이 제출되었습니다.");
             } else {
                 playSound('wrong');
-                window.showToast("❌ 오답입니다! 지표면 근처에서 빨리 식으면 알갱이가 뭉칠 시간이 부족해 결정이 작아집니다(화산암). 다시 도전하세요.");
+                window.showToast("❌ 오답입니다! " + window.currentRescueQuestion.explanation + " 다시 도전하세요.");
+            }
+        };
+
+        window.clientAdjustBid = function(amount) {
+            playSound('click');
+            var rangeInput = document.getElementById('bidRangeInput');
+            if (rangeInput && !rangeInput.disabled) {
+                var currentVal = parseInt(rangeInput.value);
+                var minVal = parseInt(rangeInput.min);
+                var maxVal = parseInt(rangeInput.max);
+                var newVal = Math.max(minVal, Math.min(maxVal, currentVal + amount));
+                rangeInput.value = newVal;
+                window.clientUpdateBid(newVal);
             }
         };
 
@@ -1759,8 +1881,8 @@
                         <div class="inline-block bg-amber-500/20 text-amber-400 p-3 rounded-2xl border border-amber-400/30">
                             <i class="fa-solid fa-trophy text-4xl"></i>
                         </div>
-                        <h2 class="text-3xl font-black font-title text-amber-300">최종 투자 결과 & 지권 디브리핑</h2>
-                        <p class="text-sm text-slate-300">중학교 2학년 과학 지권 단원 모둠 탐구 완수를 축하합니다!</p>
+                        <h2 class="text-3xl font-black font-title text-amber-300">최종 투자 결과 & 식물 디브리핑</h2>
+                        <p class="text-sm text-slate-300">중학교 2학년 과학 [식물과 에너지] 단원 모둠 탐구 완수를 축하합니다!</p>
                     </div>
 
                     <div class="glass-panel rounded-3xl p-6 space-y-4">
@@ -1809,7 +1931,7 @@
         };
 
         window.finishClassAndClear = function() {
-            localStorage.removeItem('earth_strata_team_host_pin');
+            localStorage.removeItem('plant_energy_team_host_pin');
             if (window.hostPingInterval) clearInterval(window.hostPingInterval);
             if (window.roomUnsubscribe) {
                 window.roomUnsubscribe();
