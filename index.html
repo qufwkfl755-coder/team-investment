@@ -4,16 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>식물과 에너지 문제 투자 (모둠전) - 실시간 멀티 디바이스 웹앱</title>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
     <!-- Firebase SDK (ES5/ES6 호환 LTS 버전 8.10.1) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -91,17 +96,16 @@
             <div class="flex items-center gap-3 text-emerald-400">
                 <i class="fa-solid fa-building-columns text-3xl animate-pulse"></i>
                 <div>
-                    <h3 class="text-xl font-bold font-title text-emerald-300" id="rescueQuizTitle">대출 심사 개념 퀴즈</h3>
+                    <h3 class="text-xl font-bold font-title text-emerald-300" id="rescueQuizTitle">대출 심사 오답 복습 퀴즈</h3>
                     <span class="text-xs text-emerald-400/90 font-semibold" id="loanRateSubtitle">희망 대출 액수를 선택하고 퀴즈를 맞추세요!</span>
                 </div>
             </div>
             <hr class="border-slate-700/60">
             
             <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-3">
-                <div class="text-xs text-amber-400 font-bold"><i class="fa-solid fa-circle-question"></i> 개념 확인 문제</div>
-                <!-- 식물과 에너지 단원에 맞게 구제 퀴즈 수정 -->
+                <div class="text-xs text-amber-400 font-bold"><i class="fa-solid fa-circle-question"></i> 오답 확인 문제</div>
                 <p class="text-sm font-semibold text-slate-100" id="rescueQuizStatement">
-                    광합성에 필요한 물은 잎의 기공을 통해 흡수된다. (O/X)
+                    문제 로딩 중...
                 </p>
             </div>
 
@@ -116,13 +120,8 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 pt-1">
-                <button onclick="submitRescueAnswer(true)" class="py-3.5 rounded-2xl font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 text-base transition">
-                    ⭕ O (그렇다)
-                </button>
-                <button onclick="submitRescueAnswer(false)" class="py-3.5 rounded-2xl font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-400 text-base transition">
-                    ❌ X (아니다)
-                </button>
+            <!-- 문제 타입에 따라 동적으로 생성될 영역 -->
+            <div id="rescueQuizButtonsContainer" class="grid grid-cols-2 gap-3 pt-1">
             </div>
         </div>
     </div>
@@ -189,11 +188,12 @@
             },
             {
                 id: 4,
-                type: "ox",
+                type: "choice",
                 category: "식물과 에너지",
-                statement: "4. 광합성에 필요한 이산화 탄소는 주로 뿌리를 통해 식물 안으로 들어온다.",
-                answer: "X",
-                explanation: "정답: X"
+                statement: "4. 투명한 밀폐 용기에 상추 모종을 넣고 이산화 탄소 및 산소 센서를 연결한 후, 빛을 비추면서 10분 동안 농도 변화를 측정했다. 이 실험 결과에 대한 설명으로 옳은 것은?",
+                options: ["산소 농도는 점차 감소한다.", "이산화 탄소 농도는 점차 증가한다.", "이산화 탄소는 광합성에 사용되어 농도가 감소한다.", "빛의 세기를 줄이면 산소 발생량이 더 빠르게 증가한다."],
+                answer: 3,
+                explanation: "정답: ③ 빛이 있을 때 상추는 광합성을 하여 이산화 탄소를 소모하고 산소를 발생시키므로, 이산화 탄소 농도는 감소하고 산소 농도는 증가합니다."
             },
             {
                 id: 5,
@@ -206,11 +206,12 @@
             },
             {
                 id: 6,
-                type: "ox",
+                type: "choice",
                 category: "식물과 에너지",
-                statement: "6. 식물의 호흡은 낮과 밤에 관계없이 항상 일어나고, 광합성은 낮에만 일어난다.",
-                answer: "O",
-                explanation: "정답: O"
+                statement: "6. 맑고 햇빛이 강한 낮 동안, 식물의 잎에서 일어나는 기체 교환 현상으로 가장 정확한 설명은?",
+                options: ["호흡만 일어나므로 산소를 흡수하고 이산화 탄소를 방출한다.", "광합성만 일어나므로 이산화 탄소를 흡수하고 산소를 방출한다.", "광합성량이 호흡량보다 많아 외관상 이산화 탄소를 흡수하고 산소를 방출한다.", "호흡량이 광합성량보다 많아 외관상 산소를 흡수하고 이산화 탄소를 방출한다."],
+                answer: 3,
+                explanation: "정답: ③ 낮에는 호흡과 광합성이 모두 일어나지만, 빛이 강해 광합성량이 훨씬 많으므로 겉보기에는 이산화 탄소를 흡수하고 산소를 방출하는 것처럼 보입니다."
             },
             {
                 id: 7,
@@ -223,11 +224,12 @@
             },
             {
                 id: 8,
-                type: "ox",
+                type: "choice",
                 category: "식물과 에너지",
-                statement: "8. 엽록체에 저장된 녹말은 주로 밤에 포도당으로 바뀌어 체관을 따라 이동한다.",
-                answer: "X",
-                explanation: "정답: X"
+                statement: "8. 잎의 엽록체에서 만들어진 광합성 산물이 다른 기관으로 이동하는 과정에 대한 설명으로 바른 것은?",
+                options: ["주로 낮에 포도당의 형태로 물관을 따라 이동한다.", "주로 밤에 설탕의 형태로 물관을 따라 이동한다.", "주로 낮에 녹말의 형태로 체관을 따라 이동한다.", "주로 밤에 설탕의 형태로 체관을 따라 이동한다."],
+                answer: 4,
+                explanation: "정답: ④ 광합성으로 만들어진 포도당은 녹말로 임시 저장되었다가, 주로 밤에 물에 잘 녹는 설탕으로 바뀌어 체관을 통해 각 부위로 이동합니다."
             },
             {
                 id: 9,
@@ -249,19 +251,21 @@
             },
             {
                 id: 11,
-                type: "ox",
+                type: "choice",
                 category: "식물과 에너지",
-                statement: "11. 광합성 산물은 뿌리, 줄기, 열매 등에 녹말의 형태로만 저장된다.",
-                answer: "X",
-                explanation: "정답: X"
+                statement: "11. 광합성으로 만들어진 양분의 이용 및 저장에 대한 설명으로 옳지 않은 것은?",
+                options: ["식물이 호흡하여 생명 활동에 필요한 에너지를 얻는 데 사용된다.", "식물의 몸을 구성하는 성분이 되어 식물이 생장하는 데 이용된다.", "동물의 먹이가 되어 사람을 포함한 다른 생물의 에너지원이 된다.", "사용하고 남은 양분은 식물의 종류와 관계없이 항상 녹말 형태로만 저장된다."],
+                answer: 4,
+                explanation: "정답: ④ 남은 양분은 식물의 종류나 부위에 따라 녹말(감자), 설탕(사탕수수), 단백질(콩), 지방(깨) 등 다양한 형태로 바뀌어 저장됩니다."
             },
             {
                 id: 12,
-                type: "ox",
+                type: "choice",
                 category: "식물과 에너지",
-                statement: "12. 광합성과 호흡은 서로 반대되는 과정으로, 광합성에서 생성된 물질은 호흡에 이용되고 호흡에서 생성된 물질은 광합성에 이용된다.",
-                answer: "O",
-                explanation: "정답: O"
+                statement: "12. 식물의 광합성과 호흡을 비교한 내용으로 옳지 않은 것은?",
+                options: ["광합성은 엽록체에서, 호흡은 주로 마이토콘드리아에서 일어난다.", "광합성은 항상 일어나고, 호흡은 낮에만 일어난다.", "광합성은 빛에너지를 흡수하고, 호흡은 에너지를 방출한다.", "광합성은 이산화 탄소를 흡수하고 산소를 방출하며, 호흡은 그 반대이다."],
+                answer: 2,
+                explanation: "정답: ② 광합성은 빛이 있는 낮에 주로 일어나지만, 호흡은 낮과 밤에 관계없이 항상 일어납니다."
             },
             {
                 id: 13,
@@ -736,7 +740,8 @@
                     rescueRequested: false,
                     requestedLoanAmount: 50,
                     debt: 0,
-                    loanCount: 0
+                    loanCount: 0,
+                    wrongQuestionIds: [] // 오답 저장용 배열
                 };
             }
 
@@ -1138,6 +1143,11 @@
                         t.points += t.currentBid;
                     } else {
                         t.points = Math.max(0, t.points - t.currentBid);
+                        // 오답 시, 해당 문항 ID를 wrongQuestionIds에 기록하여 대출 복습 문제로 활용
+                        if (!t.wrongQuestionIds) t.wrongQuestionIds = [];
+                        if (!t.wrongQuestionIds.includes(q.id)) {
+                            t.wrongQuestionIds.push(q.id);
+                        }
                     }
                 }
             });
@@ -1276,7 +1286,7 @@
                     for (var i = 1; i <= 5; i++) {
                         var key = i.toString();
                         initialParticipants[key] = {
-                            id: key, name: `${i}모둠`, points: 100, currentBid: 5, choice: null, submitted: false, joined: false, rescueRequested: false, debt: 0, loanCount: 0
+                            id: key, name: `${i}모둠`, points: 100, currentBid: 5, choice: null, submitted: false, joined: false, rescueRequested: false, debt: 0, loanCount: 0, wrongQuestionIds: []
                         };
                     }
                     window.gameState.roomData = {
@@ -1302,7 +1312,7 @@
             var container = document.getElementById('appContainer');
             var data = window.gameState.roomData;
             var myTeamId = window.gameState.myTeamId;
-            var myTeam = (data && data.teams && data.teams[myTeamId]) ? data.teams[myTeamId] : { name: myTeamId + '모둠', points: 100, currentBid: 5, choice: null, submitted: false, joined: true, rescueRequested: false, debt: 0, loanCount: 0 };
+            var myTeam = (data && data.teams && data.teams[myTeamId]) ? data.teams[myTeamId] : { name: myTeamId + '모둠', points: 100, currentBid: 5, choice: null, submitted: false, joined: true, rescueRequested: false, debt: 0, loanCount: 0, wrongQuestionIds: [] };
 
             if (!data) return;
 
@@ -1417,7 +1427,6 @@
             var isBankrupt = maxPt <= 0;
             var isCorrect = myTeam.submitted && window.checkQuestionCorrectness(q, myTeam.choice);
 
-            // 한글 입력 중 DOM 파괴로 인한 타이핑 끊김 방지 가드
             var currentForm = document.getElementById('clientBiddingForm');
             var renderedQIdx = container.dataset.renderedQIdx;
             var renderedRevealed = container.dataset.renderedRevealed;
@@ -1509,7 +1518,7 @@
                                     </div>
                                     <h3 class="text-lg font-black font-title text-amber-300">${nextLoanCount}회차 대출 신청 제출 완료!</h3>
                                     <p class="text-xs text-slate-300 leading-relaxed">
-                                        대출 심사 퀴즈를 맞췄습니다!<br>
+                                        대출 심사 복습 퀴즈를 맞췄습니다!<br>
                                         선생님이 전면 스크린에서 <strong class="text-amber-400">'${nextLoanCount}회차 대출 승인'</strong> 버튼을 누르시면 대출금을 받고 투자에 복귀합니다.
                                     </p>
                                 </div>
@@ -1518,11 +1527,11 @@
                                     <div class="text-4xl">💸</div>
                                     <div>
                                         <h3 class="text-xl font-black font-title text-rose-300">자금이 모두 소진되었습니다!</h3>
-                                        <p class="text-xs text-slate-300 mt-1">대출 심사 퀴즈를 맞추면 <strong>${nextLoanCount}회차 대출 (상환율 ${nextLoanRate}%)</strong>을 신청할 수 있습니다.</p>
+                                        <p class="text-xs text-slate-300 mt-1">이전에 틀렸던 문제를 복습하고 맞추면 <strong>${nextLoanCount}회차 대출 (상환율 ${nextLoanRate}%)</strong>을 신청할 수 있습니다.</p>
                                     </div>
                                     <button onclick="openRescueQuizModal()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black rounded-2xl shadow-xl transition font-title text-base flex items-center justify-center gap-2 badge-glow">
                                         <i class="fa-solid fa-file-pen text-lg"></i>
-                                        <span>${nextLoanCount}회차 대출 퀴즈 도전 (이율 ${nextLoanRate}%)</span>
+                                        <span>${nextLoanCount}회차 오답 복습하고 대출받기</span>
                                     </button>
                                 </div>
                             `}
@@ -1614,9 +1623,21 @@
             var ratePercent = 100 + (nextAttempt * 10);
             var rateMultiplier = 1.0 + (nextAttempt * 0.1);
 
-            // 랜덤 문제 출제 로직 추가
-            var oxQuestions = window.questionBank.filter(function(q) { return q.type === 'ox'; });
-            window.currentRescueQuestion = oxQuestions[Math.floor(Math.random() * oxQuestions.length)];
+            // 오답 노트 연동 로직
+            var wrongIds = myTeam && myTeam.wrongQuestionIds ? myTeam.wrongQuestionIds : [];
+            var eligibleQuestions = window.questionBank.filter(function(q) {
+                return wrongIds.includes(q.id);
+            });
+
+            // 만약 기록된 오답이 없을 경우 (에러 상황 방지) 현재 문제로 폴백
+            if (eligibleQuestions.length === 0) {
+                var fallbackIdx = data ? data.currentQuestionIdx : 0;
+                eligibleQuestions = [window.questionBank[fallbackIdx]];
+            }
+
+            // 오답 중에서 랜덤 출제
+            window.currentRescueQuestion = eligibleQuestions[Math.floor(Math.random() * eligibleQuestions.length)];
+            
             var statementElem = document.getElementById('rescueQuizStatement');
             if (statementElem) statementElem.innerText = window.currentRescueQuestion.statement;
 
@@ -1624,10 +1645,10 @@
             var rateBadge = document.getElementById('currentLoanRateBadge');
             var rangeElem = document.getElementById('requestedLoanRange');
 
-            if (titleElem) titleElem.innerText = "대출 심사 개념 퀴즈 (" + nextAttempt + "회차 대출)";
+            if (titleElem) titleElem.innerText = "대출 심사 복습 퀴즈 (" + nextAttempt + "회차)";
             if (rateBadge) rateBadge.innerText = ratePercent + "%";
             
-            // --- 평균 연동제: 학급 평균 자본금 계산 및 대출 상한선 설정 로직 추가 ---
+            // --- 평균 연동제: 학급 평균 자본금 계산 및 대출 상한선 설정 로직 ---
             var teamsList = data ? Object.values(data.teams) : [];
             var totalPoints = 0;
             var teamCount = teamsList.length;
@@ -1646,9 +1667,7 @@
             }
 
             if (rangeElem) {
-                rangeElem.max = maxLoanLimit; // 슬라이더의 최댓값을 학급 평균으로 동적 변경
-                
-                // 만약 현재 슬라이더의 값이 새로 설정된 최댓값보다 크다면, 최댓값으로 조정
+                rangeElem.max = maxLoanLimit;
                 if (parseInt(rangeElem.value) > maxLoanLimit) {
                     rangeElem.value = maxLoanLimit;
                 }
@@ -1657,12 +1676,30 @@
                 window.updateLoanEstimate(rangeElem.value);
             }
             
-            // 상한선 안내 문구 업데이트 (UI 피드백)
             var loanRateSubtitle = document.getElementById('loanRateSubtitle');
             if (loanRateSubtitle) {
-                loanRateSubtitle.innerHTML = `희망 대출 액수를 선택하고 퀴즈를 맞추세요!<br><span class="text-amber-300 font-bold">(현재 학급 평균 자본금: ${averagePoints}pt → 최대 대출 한도: ${maxLoanLimit}pt)</span>`;
+                loanRateSubtitle.innerHTML = `희망 대출 액수를 선택하고 이전에 틀린 퀴즈를 맞추세요!<br><span class="text-amber-300 font-bold">(현재 학급 평균 자본금: ${averagePoints}pt → 최대 대출 한도: ${maxLoanLimit}pt)</span>`;
             }
-            // ----------------------------------------------------------------------
+
+            // 문제 타입(OX/객관식)에 따른 버튼 동적 렌더링
+            var buttonsContainer = document.getElementById('rescueQuizButtonsContainer');
+            var buttonsHtml = '';
+
+            if (window.currentRescueQuestion.type === 'ox') {
+                buttonsContainer.className = "grid grid-cols-2 gap-3 pt-1";
+                buttonsHtml = `
+                    <button onclick="submitRescueAnswer('O')" class="py-3.5 rounded-2xl font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 text-base transition">⭕ O (그렇다)</button>
+                    <button onclick="submitRescueAnswer('X')" class="py-3.5 rounded-2xl font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-400 text-base transition">❌ X (아니다)</button>
+                `;
+            } else if (window.currentRescueQuestion.type === 'choice') {
+                buttonsContainer.className = "grid grid-cols-1 gap-2 pt-1";
+                buttonsHtml = window.currentRescueQuestion.options.map(function(opt, i) {
+                    var num = i + 1;
+                    var numIcon = ['①', '②', '③', '④', '⑤'][i] || num;
+                    return `<button onclick="submitRescueAnswer(${num})" class="py-2.5 px-4 rounded-xl font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-sm text-left transition"><span class="text-amber-400 mr-2">${numIcon}</span>${opt}</button>`;
+                }).join('');
+            }
+            if (buttonsContainer) buttonsContainer.innerHTML = buttonsHtml;
 
             document.getElementById('rescueQuizModal').classList.remove('hidden');
         };
@@ -1705,8 +1742,13 @@
         window.submitRescueAnswer = function(answer) {
             if (!window.currentRescueQuestion) return;
 
-            var correctAnswerBool = (window.currentRescueQuestion.answer === 'O');
-            var isCorrect = (answer === correctAnswerBool);
+            var isCorrect = false;
+            // 타입별 정답 검증 로직 통일
+            if (window.currentRescueQuestion.type === 'ox') {
+                isCorrect = (answer === window.currentRescueQuestion.answer);
+            } else if (window.currentRescueQuestion.type === 'choice') {
+                isCorrect = (parseInt(answer) === parseInt(window.currentRescueQuestion.answer));
+            }
 
             if (isCorrect) {
                 playSound('correct');
@@ -1726,10 +1768,10 @@
                     window.renderClientDashboard();
                 }
                 var attemptNum = ((data.teams[myTeamId].loanCount || 0) + 1);
-                window.showToast("✅ 대출 심사 퀴즈 정답! 선생님에게 " + attemptNum + "회차 대출 신청(" + reqAmount + "pt)이 제출되었습니다.");
+                window.showToast("✅ 복습 퀴즈 정답! 선생님에게 " + attemptNum + "회차 대출 신청(" + reqAmount + "pt)이 제출되었습니다.");
             } else {
                 playSound('wrong');
-                window.showToast("❌ 오답입니다! " + window.currentRescueQuestion.explanation + " 다시 도전하세요.");
+                window.showToast("❌ 오답입니다! " + window.currentRescueQuestion.explanation + " 다시 생각해보세요.");
             }
         };
 
