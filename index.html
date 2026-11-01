@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>식물과 에너지 문제 투자 (모둠전) - 실시간 멀티 디바이스 웹앱</title>
+    <title>5. 힘의 작용 문제 투자 시스템 (모둠전) - 실시간 멀티 디바이스 웹앱</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -58,13 +58,13 @@
     <header class="glass-panel rounded-2xl p-3.5 mb-3 flex flex-wrap justify-between items-center shadow-lg border-b border-indigo-500/20">
         <div class="flex items-center gap-3">
             <div class="bg-indigo-600/30 p-2.5 rounded-xl border border-indigo-400/30 text-indigo-400 text-xl">
-                <i class="fa-solid fa-leaf fa-bounce" style="--fa-animation-duration: 4s;"></i>
+                <i class="fa-solid fa-weight-hanging fa-bounce" style="--fa-animation-duration: 4s;"></i>
             </div>
             <div>
                 <h1 class="text-lg md:text-xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-orange-300 to-emerald-300 font-title">
-                    식물과 에너지 문제 투자 <span id="gameModeBadgeHeader" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-400/30 font-sans">모둠전</span>
+                    5. 힘의 작용 문제 투자 시스템 <span id="gameModeBadgeHeader" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/30 text-amber-300 border border-amber-400/30 font-sans">모둠전</span>
                 </h1>
-                <p class="text-xs text-slate-400">중2 과학 [식물과 에너지] 모둠별 게이미피케이션 수업 도구</p>
+                <p class="text-xs text-slate-400">중1 과학 [V. 힘의 작용 - 여러 가지 힘] 모둠별 확신도 투자 게임</p>
             </div>
         </div>
 
@@ -88,9 +88,10 @@
     </main>
 
     <footer class="mt-4 text-center text-xs text-slate-500 py-1.5 border-t border-slate-800/60">
-        수업디자인 연수 오전 강의용 | 중학교 2학년 과학 [식물과 에너지 문제 투자 시스템 - 모둠전]
+        수업디자인 연수 | 중학교 과학 [5. 힘의 작용 문제 투자 시스템 - 모둠전]
     </footer>
 
+    <!-- 대출 심사 복습 퀴즈 모달 -->
     <div id="rescueQuizModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel bg-slate-900/90 border-2 border-emerald-500/50 rounded-3xl p-6 md:p-8 max-w-lg w-full glow-effect relative space-y-4">
             <div class="flex items-center gap-3 text-emerald-400">
@@ -120,7 +121,6 @@
                 </p>
             </div>
 
-            <!-- 문제 타입에 따라 동적으로 생성될 영역 -->
             <div id="rescueQuizButtonsContainer" class="grid grid-cols-2 gap-3 pt-1">
             </div>
         </div>
@@ -147,7 +147,7 @@
         window.auth = null;
         window.roomUnsubscribe = null;
         window.hostPingInterval = null;
-        window.appId = 'plant-energy-investment-team';
+        window.appId = 'force-action-investment-team';
 
         var resolveAuthPromise;
         window.authReady = new Promise(function(resolve) {
@@ -159,122 +159,139 @@
             return window.db.collection('artifacts').doc(window.appId).collection('public').doc('data').collection('rooms').doc(pin);
         };
 
+        /* ========================================================
+           문제 은행: V. 힘의 작용 (중력·탄성력·마찰력·부력) 10문항
+           ======================================================== */
         window.questionBank = [
             {
                 id: 1,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "1. 식물 세포에서 광합성이 일어나는 장소는 어디인가?",
-                options: ["물관", "엽록체", "마이토콘드리아", "기공"],
+                category: "여러 가지 힘",
+                statement: "1. 스마트 기기를 옆으로 기울이면 기기가 어떤 힘의 방향을 감지하여 화면이 회전한다. 이때 기기가 감지하는 힘의 종류는?",
+                options: ["부력", "중력", "탄성력", "마찰력"],
                 answer: 2,
-                explanation: "정답: ②번"
+                explanation: "정답: ② 중력은 지구 중심 방향(아래쪽)으로 작용하므로, 스마트 기기 속 센서가 중력의 작용 방향을 감지하여 화면을 자동으로 회전시킵니다."
             },
             {
                 id: 2,
-                type: "ox",
-                category: "식물과 에너지",
-                statement: "2. 식물의 광합성에는 빛에너지, 이산화 탄소, 물이 모두 필요하다.",
-                answer: "O",
-                explanation: "정답: O"
+                type: "choice",
+                category: "중력과 무게",
+                statement: "2. 물체 A의 무게와 질량을 지구와 달에서 각각 측정했다. 이에 대한 설명으로 옳은 것은?",
+                options: [
+                    "양팔저울로 측정한 질량은 지구에서보다 달에서 더 작다.",
+                    "용수철저울로 측정한 값은 지구에서보다 달에서 더 작다.",
+                    "물체에 작용하는 중력의 크기는 지구와 달 모두 같다.",
+                    "질량과 무게는 측정하는 장소와 무관하다."
+                ],
+                answer: 2,
+                explanation: "정답: ② 무게(용수철저울 눈금)는 물체에 작용하는 중력의 크기이므로 중력이 약 1/6로 작은 달에서는 더 작게 측정됩니다. 질량은 장소가 달라져도 변하지 않으며 양팔저울로 측정합니다."
             },
             {
                 id: 3,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "3. 식물의 광합성으로 처음 만들어지는 양분(가)과 엽록체에 저장되는 양분(나)의 형태로 옳은 것은?",
-                options: ["(가)포도당 (나)녹말", "(가)녹말 (나)포도당", "(가)포도당 (나)설탕", "(가)설탕 (나)녹말"],
-                answer: 1,
-                explanation: "정답: ①번"
+                category: "중력과 무게",
+                statement: "3. 지구에서 질량 1 kg인 물체의 무게는 9.8 N이다. 지구에서 무게가 98 N인 물체를 달로 가져가 양팔저울로 측정했을 때 나오는 값은?",
+                options: ["5 kg", "9.8 kg", "10 kg", "98 kg"],
+                answer: 3,
+                explanation: "정답: ③ 지구에서 무게가 98 N인 물체의 질량은 98 ÷ 9.8 = 10 kg입니다. 질량은 장소가 바뀌어도 변하지 않는 고유한 양이며, 양팔저울은 기준 추와 질량을 비교하므로 달에서도 10 kg입니다."
             },
             {
                 id: 4,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "4. 투명한 밀폐 용기에 상추 모종을 넣고 이산화 탄소 및 산소 센서를 연결한 후, 빛을 비추면서 10분 동안 농도 변화를 측정했다. 이 실험 결과에 대한 설명으로 옳은 것은?",
-                options: ["산소 농도는 점차 감소한다.", "이산화 탄소 농도는 점차 증가한다.", "이산화 탄소는 광합성에 사용되어 농도가 감소한다.", "빛의 세기를 줄이면 산소 발생량이 더 빠르게 증가한다."],
+                category: "탄성력",
+                statement: "4. 벽에 한쪽 끝이 고정된 용수철의 다른 쪽 끝을 손으로 왼쪽으로 밀어 압축시켰다. 이에 대한 설명으로 옳은 것은?",
+                options: [
+                    "용수철의 탄성력은 왼쪽으로 작용한다.",
+                    "더 많이 압축할수록 탄성력의 방향이 반대로 바뀐다.",
+                    "더 많이 압축할수록 탄성력의 크기는 커진다.",
+                    "압축한 길이와 탄성력의 크기는 서로 관계가 없다."
+                ],
                 answer: 3,
-                explanation: "정답: ③ 빛이 있을 때 상추는 광합성을 하여 이산화 탄소를 소모하고 산소를 발생시키므로, 이산화 탄소 농도는 감소하고 산소 농도는 증가합니다."
+                explanation: "정답: ③ 탄성력의 크기는 용수철의 변형된 길이가 길어질수록(더 많이 압축할수록) 커집니다. (탄성력의 방향은 손이 민 왼쪽의 반대인 오른쪽으로 작용합니다.)"
             },
             {
                 id: 5,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "5. 빛의 세기와 광합성량의 관계에 대한 설명으로 옳은 것은?",
-                options: ["빛이 셀수록 광합성량은 무한정 증가한다.", "빛이 셀수록 광합성량은 감소한다.", "빛이 셀수록 광합성량은 증가하다가 일정 세기 이상이 되면 일정해진다.", "빛의 세기와 광합성량은 관계가 없다."],
-                answer: 3,
-                explanation: "정답: ③번"
+                category: "마찰력",
+                statement: "5. 다음 중 마찰력을 이용하는 방법이 나머지 셋과 다른 하나는?",
+                options: [
+                    "등산화 바닥의 깊은 홈",
+                    "물 미끄럼틀에 흐르는 물",
+                    "계단 끝에 붙인 미끄럼 방지 테이프",
+                    "자동차 타이어 표면의 홈 무늬"
+                ],
+                answer: 2,
+                explanation: "정답: ② 등산화 홈(①), 미끄럼 방지 테이프(③), 타이어 홈(④)은 마찰력을 크게 하여 미끄러지지 않게 하는 예이고, 물 미끄럼틀(②)은 마찰력을 작게 하여 잘 미끄러지게 하는 예입니다."
             },
             {
                 id: 6,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "6. 맑고 햇빛이 강한 낮 동안, 식물의 잎에서 일어나는 기체 교환 현상으로 가장 정확한 설명은?",
-                options: ["호흡만 일어나므로 산소를 흡수하고 이산화 탄소를 방출한다.", "광합성만 일어나므로 이산화 탄소를 흡수하고 산소를 방출한다.", "광합성량이 호흡량보다 많아 외관상 이산화 탄소를 흡수하고 산소를 방출한다.", "호흡량이 광합성량보다 많아 외관상 산소를 흡수하고 이산화 탄소를 방출한다."],
-                answer: 3,
-                explanation: "정답: ③ 낮에는 호흡과 광합성이 모두 일어나지만, 빛이 강해 광합성량이 훨씬 많으므로 겉보기에는 이산화 탄소를 흡수하고 산소를 방출하는 것처럼 보입니다."
+                category: "마찰력",
+                statement: "6. 마찰력에 대한 설명으로 옳지 않은 것은?",
+                options: [
+                    "두 물체의 접촉면에서 물체의 운동을 방해하는 힘이다.",
+                    "물체의 운동 방향과 반대 방향으로 작용한다.",
+                    "물체의 무게가 같을 때, 접촉면이 거칠수록 마찰력이 크게 작용한다.",
+                    "접촉면의 거칠기가 같을 때, 물체가 가벼울수록 마찰력이 크게 작용한다."
+                ],
+                answer: 4,
+                explanation: "정답: ④ 접촉면의 거칠기가 같을 때는 물체가 무거울수록 접촉면을 누르는 힘이 커져 마찰력이 크게 작용합니다. 따라서 물체가 가벼울수록 마찰력이 크다는 설명은 옳지 않습니다."
             },
             {
                 id: 7,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "7. 식물의 호흡에 대한 설명으로 옳지 않은 것은?",
-                options: ["양분을 분해하여 에너지를 얻는 과정이다.", "마이토콘드리아에서 일어난다.", "포도당과 산소가 사용된다.", "빛에너지를 흡수하는 과정이다."],
-                answer: 4,
-                explanation: "정답: ④번"
+                category: "부력",
+                statement: "7. 빈 페트병을 (가) 물속에 세워서 완전히 잠기게 했을 때와 (나) 눕혀서 완전히 잠기게 했을 때, 페트병에 작용하는 부력의 크기를 비교한 것으로 옳은 것은?",
+                options: [
+                    "(가)와 (나)가 같다. 물에 잠긴 페트병의 부피가 같기 때문이다.",
+                    "(가)가 더 크다. 페트병이 물속에서 더 깊이 들어가기 때문이다.",
+                    "(나)가 더 크다. 물과 닿는 면이 더 넓기 때문이다.",
+                    "알 수 없다. 페트병의 질량을 모르기 때문이다."
+                ],
+                answer: 1,
+                explanation: "정답: ① 완전히 잠긴 경우, 놓인 방향이나 깊이와 관계없이 물에 잠긴 물체의 부피가 서로 같으므로 밀어낸 물의 무게(부력의 크기)도 (가)와 (나)가 같습니다."
             },
             {
                 id: 8,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "8. 잎의 엽록체에서 만들어진 광합성 산물이 다른 기관으로 이동하는 과정에 대한 설명으로 바른 것은?",
-                options: ["주로 낮에 포도당의 형태로 물관을 따라 이동한다.", "주로 밤에 설탕의 형태로 물관을 따라 이동한다.", "주로 낮에 녹말의 형태로 체관을 따라 이동한다.", "주로 밤에 설탕의 형태로 체관을 따라 이동한다."],
-                answer: 4,
-                explanation: "정답: ④ 광합성으로 만들어진 포도당은 녹말로 임시 저장되었다가, 주로 밤에 물에 잘 녹는 설탕으로 바뀌어 체관을 통해 각 부위로 이동합니다."
+                category: "여러 가지 힘",
+                statement: "8. 다음 현상 중 작용하는 힘의 종류가 나머지 셋과 다른 하나는?",
+                options: [
+                    "계단 끝에 붙인 미끄럼 방지 테이프 때문에 덜 미끄러진다.",
+                    "등산할 때에는 바닥에 홈이 많은 등산화를 신어야 한다.",
+                    "구명조끼를 입고 물속에 들어가면 몸이 뜬다.",
+                    "겹쳐진 두 책을 양쪽에서 당겨도 잘 분리되지 않는다."
+                ],
+                answer: 3,
+                explanation: "정답: ③ ①, ②, ④는 모두 접촉면 사이의 '마찰력'을 이용한 현상이고, ③은 물속에서 위쪽으로 밀어 올리는 '부력'을 이용한 현상입니다."
             },
             {
                 id: 9,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "9. 식물의 부위별 광합성 산물 저장 형태가 바르게 짝지어진 것은?",
-                options: ["포도 - 녹말", "고구마 - 포도당", "콩 - 단백질", "깨 - 설탕"],
+                category: "부력",
+                statement: "9. 공기 중에서 무게가 20 N인 두 물체 A, B를 물에 완전히 담갔더니 무게가 각각 A는 14 N, B는 12 N으로 측정되었다. 이에 대한 설명으로 옳은 것은?",
+                options: [
+                    "물속에서 측정한 무게가 줄어든 까닭은 물체의 질량이 줄어들었기 때문이다.",
+                    "물속에서 물체 A에 작용하는 부력의 크기는 14 N이다.",
+                    "물에 잠긴 물체의 부피는 A보다 B가 더 크다.",
+                    "물체 B에 작용하는 부력의 크기는 물체 A에 작용하는 부력보다 작다."
+                ],
                 answer: 3,
-                explanation: "정답: ③번"
+                explanation: "정답: ③ 부력의 크기 = (공기 중 무게 - 물속 무게)이므로 A의 부력은 20 - 14 = 6 N, B의 부력은 20 - 12 = 8 N입니다. 물에 잠긴 부피가 클수록 부력이 크므로 B의 부피가 더 큽니다."
             },
             {
                 id: 10,
                 type: "choice",
-                category: "식물과 에너지",
-                statement: "10. 온도가 식물의 광합성에 미치는 영향으로 가장 적절한 것은?",
-                options: ["온도가 높을수록 광합성량은 계속 증가한다.", "온도가 높을수록 광합성량은 계속 감소한다.", "일정 온도 이상이 되면 광합성량이 빠르게 감소한다.", "온도는 광합성량에 아무런 영향을 주지 않는다."],
-                answer: 3,
-                explanation: "정답: ③번"
-            },
-            {
-                id: 11,
-                type: "choice",
-                category: "식물과 에너지",
-                statement: "11. 광합성으로 만들어진 양분의 이용 및 저장에 대한 설명으로 옳지 않은 것은?",
-                options: ["식물이 호흡하여 생명 활동에 필요한 에너지를 얻는 데 사용된다.", "식물의 몸을 구성하는 성분이 되어 식물이 생장하는 데 이용된다.", "동물의 먹이가 되어 사람을 포함한 다른 생물의 에너지원이 된다.", "사용하고 남은 양분은 식물의 종류와 관계없이 항상 녹말 형태로만 저장된다."],
-                answer: 4,
-                explanation: "정답: ④ 남은 양분은 식물의 종류나 부위에 따라 녹말(감자), 설탕(사탕수수), 단백질(콩), 지방(깨) 등 다양한 형태로 바뀌어 저장됩니다."
-            },
-            {
-                id: 12,
-                type: "choice",
-                category: "식물과 에너지",
-                statement: "12. 식물의 광합성과 호흡을 비교한 내용으로 옳지 않은 것은?",
-                options: ["광합성은 엽록체에서, 호흡은 주로 마이토콘드리아에서 일어난다.", "광합성은 항상 일어나고, 호흡은 낮에만 일어난다.", "광합성은 빛에너지를 흡수하고, 호흡은 에너지를 방출한다.", "광합성은 이산화 탄소를 흡수하고 산소를 방출하며, 호흡은 그 반대이다."],
-                answer: 2,
-                explanation: "정답: ② 광합성은 빛이 있는 낮에 주로 일어나지만, 호흡은 낮과 밤에 관계없이 항상 일어납니다."
-            },
-            {
-                id: 13,
-                type: "choice",
-                category: "식물과 에너지",
-                statement: "13. 여름철 열대야가 지속될 때 농작물의 당도가 낮아지는 이유로 가장 알맞은 것은?",
-                options: ["밤에 광합성을 너무 많이 해서", "밤에 온도가 높아 호흡을 많이 하므로 양분 소모가 커서", "밤에 기공이 닫혀 이산화 탄소 흡수를 못해서", "밤에 온도가 너무 높으면 체관이 막혀서 설탕이 잘 이동을 못해서"],
-                answer: 2,
-                explanation: "정답: ②번"
+                category: "중력",
+                statement: "10. 지구에서 사람이 서 있는 위치에 따른 중력의 방향에 대한 설명으로 옳은 것은?",
+                options: [
+                    "중력은 지구의 중심 방향을 향하므로 지구 반대편 사람도 중심 쪽으로 당겨진다.",
+                    "지구 반대편에 있는 사람은 중력이 위쪽으로 작용해 우주로 떨어진다.",
+                    "적도에서는 중력이 북극 방향으로 작용한다.",
+                    "지구 중심에서 멀어질수록 중력의 크기는 무한히 커진다."
+                ],
+                answer: 1,
+                explanation: "정답: ① 중력은 지표면 위의 모든 물체에 대해 항상 지구 중심 방향으로 작용합니다. 따라서 우리나라의 정반대편에 있는 사람도 지구 중심 방향으로 중력을 받아 서 있을 수 있습니다."
             }
         ];
 
@@ -460,7 +477,7 @@
                             <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700/60 space-y-3">
                                 <div class="text-xs font-bold text-amber-300 flex items-center justify-between">
                                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-users-rectangle"></i> 학급 모둠 수 설정</span>
-                                    <span class="text-[11px] text-slate-400">5모둠 / 6모둠 등 선택</span>
+                                    <span class="text-[11px] text-slate-400">4~8모둠 선택</span>
                                 </div>
                                 <div class="grid grid-cols-5 gap-1.5">
                                     <button type="button" onclick="window.selectHostTeamCount(4)" id="tcBtn_4" class="py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition">4모둠</button>
@@ -598,7 +615,7 @@
             }
 
             statusDiv.className = "text-[11px] mt-1 text-indigo-300 text-center font-bold";
-                statusDiv.innerText = retryCount > 0 ? "🔍 방 정보를 검색 중입니다 (" + retryCount + "/3)..." : "🔍 방 정보 확인 중...";
+            statusDiv.innerText = retryCount > 0 ? "🔍 방 정보를 검색 중입니다 (" + retryCount + "/3)..." : "🔍 방 정보 확인 중...";
 
             if (window.db) {
                 try {
@@ -741,7 +758,7 @@
                     requestedLoanAmount: 50,
                     debt: 0,
                     loanCount: 0,
-                    wrongQuestionIds: [] // 오답 저장용 배열
+                    wrongQuestionIds: []
                 };
             }
 
@@ -857,7 +874,7 @@
 
                     <button onclick="startHostGame()" class="w-full py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-600 hover:from-amber-400 hover:to-emerald-500 text-slate-950 font-black rounded-2xl shadow-xl transition font-title text-lg flex items-center justify-center gap-3">
                         <i class="fa-solid fa-play text-xl animate-bounce"></i>
-                        <span>식물과 에너지 문제 투자 시작하기 (문항 1 진행)</span>
+                        <span>힘의 작용 문제 투자 시작하기 (문항 1 진행)</span>
                     </button>
                 </div>
             `;
@@ -1002,55 +1019,72 @@
 
                                     ${isRescueRequested ? `
                                         <div class="bg-amber-950/60 p-2 rounded-xl border border-amber-500/40 space-y-1.5">
-                                            <div class="text-[11px] text-amber-300 font-bold flex justify-between">
-                                                <span>${loanAttemptCount}회차 (이율 ${currentRate}%):</span>
-                                                <span class="font-black text-amber-200">${t.requestedLoanAmount || 50}pt</span>
-                                            </div>
-                                            <div class="flex items-center gap-1">
-                                                <span class="text-[10px] text-slate-400 shrink-0">승인액:</span>
-                                                <input type="number" id="hostLoanAmt_${t.id}" value="${t.requestedLoanAmount || 50}" min="10" max="500" step="10" class="w-full bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-xs font-bold text-amber-300 focus:outline-none focus:border-amber-400">
-                                                <span class="text-[10px] text-slate-400 shrink-0">pt</span>
-                                            </div>
-                                            <button onclick="approveRescueByHost('${t.id}')" class="w-full py-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black rounded-lg text-xs shadow transition flex items-center justify-center gap-1">
-                                                <i class="fa-solid fa-hand-holding-dollar"></i>
-                                                <span>${loanAttemptCount}회차 대출 승인</span>
-                                            </button>
+                                        <div class="text-[11px] text-amber-300 font-bold flex justify-between">
+                                            <span>${loanAttemptCount}회차 (이율 ${currentRate}%):</span>
+                                            <span class="font-black text-amber-200">${t.requestedLoanAmount || 50}pt</span>
                                         </div>
-                                    ` : ''}
-                                </div>
-                            `;
-                        }).join('')}
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-[10px] text-slate-400 shrink-0">승인액:</span>
+                                            <input type="number" id="hostLoanAmt_${t.id}" value="${t.requestedLoanAmount || 50}" min="10" max="500" step="10" class="w-full bg-slate-950 border border-slate-700 rounded px-1.5 py-0.5 text-center text-xs font-bold text-amber-300 focus:outline-none focus:border-amber-400">
+                                            <span class="text-[10px] text-slate-400 shrink-0">pt</span>
+                                        </div>
+                                        <button onclick="approveRescueByHost('${t.id}')" class="w-full py-1 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black rounded-lg text-xs shadow transition flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                                            <span>${loanAttemptCount}회차 대출 승인</span>
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <!-- 하단 컨트롤 버튼 바 (정산 공개 vs 다음 문제 완벽 분리) -->
+                <div class="glass-panel rounded-2xl p-3 px-4 flex flex-wrap justify-between items-center gap-3 border ${!data.isRevealed ? 'border-amber-500/40 bg-amber-950/20' : 'border-emerald-500/40 bg-emerald-950/20'}">
+                    <div class="flex items-center gap-2">
+                        ${!data.isRevealed ? `
+                            <span class="flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-amber-500/20 px-3 py-1.5 rounded-xl border border-amber-500/30">
+                                <i class="fa-solid fa-lock text-amber-400"></i>
+                                <span>1단계: 모둠 투자 마감 및 정산 단계</span>
+                            </span>
+                        ` : `
+                            <span class="flex items-center gap-1.5 text-xs font-bold text-emerald-300 bg-emerald-500/20 px-3 py-1.5 rounded-xl border border-emerald-500/30 animate-pulse">
+                                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                                <span>2단계: 정답 확인 완료 ➔ 다음 문제 준비</span>
+                            </span>
+                        `}
                     </div>
 
-                    <div class="flex justify-end pt-1 gap-2">
+                    <div class="flex items-center gap-2 ml-auto">
                         ${!data.isRevealed ? `
-                            <button onclick="skipHostQuestion()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold rounded-xl transition text-sm md:text-base font-title flex items-center gap-2">
+                            <button onclick="skipHostQuestion()" class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-slate-200 font-bold rounded-xl transition text-xs flex items-center gap-1.5">
                                 <i class="fa-solid fa-forward-step"></i>
-                                <span class="hidden sm:inline">문제 건너뛰기</span>
+                                <span>문제 패스</span>
                             </button>
-                            <button onclick="revealHostResult()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-lg transition text-sm md:text-base font-title flex items-center gap-2">
-                                <i class="fa-solid fa-gavel"></i>
-                                <span>정산 발표 & 결과 공개 (${submittedCount}/${totalCount} 제출)</span>
+                            <button onclick="revealHostResult()" class="px-6 py-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black rounded-xl shadow-lg border border-amber-300/40 transition text-sm md:text-base font-title flex items-center gap-2.5 glow-effect">
+                                <i class="fa-solid fa-gavel text-lg"></i>
+                                <span>정산 발표 & 결과 공개 (${submittedCount}/${totalCount})</span>
                             </button>
                         ` : `
                             ${data.currentQuestionIdx < window.questionBank.length - 1 ? `
-                                <button onclick="nextHostQuestion()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-lg transition text-sm md:text-base font-title flex items-center gap-2">
-                                    <span>다음 문제 진행</span>
-                                    <i class="fa-solid fa-arrow-right"></i>
+                                <button onclick="nextHostQuestion()" class="px-7 py-3 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black rounded-xl shadow-xl border-2 border-emerald-300 transition text-sm md:text-base font-title flex items-center gap-2.5">
+                                    <span>다음 문제로 넘어가기 (문항 ${data.currentQuestionIdx + 2})</span>
+                                    <i class="fa-solid fa-circle-arrow-right text-lg fa-beat-fade"></i>
                                 </button>
                             ` : `
-                                <button onclick="renderDebriefingViewHost()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-lg transition text-sm md:text-base font-title flex items-center gap-2">
-                                    <i class="fa-solid fa-trophy"></i>
-                                    <span>최종 리포트 (디브리핑)</span>
+                                <button onclick="renderDebriefingViewHost()" class="px-7 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:to-pink-400 text-white font-black rounded-xl shadow-xl border-2 border-indigo-300 transition text-sm md:text-base font-title flex items-center gap-2.5">
+                                    <i class="fa-solid fa-trophy text-lg text-amber-300"></i>
+                                    <span>최종 리포트 (디브리핑) 바로가기</span>
                                 </button>
                             `}
                         `}
                     </div>
                 </div>
-            `;
-        };
+            </div>
+        `;
+    };
 
-        window.adjustTeamPoints = function(teamId, amount) {
+    window.adjustTeamPoints = function(teamId, amount) {
             var data = window.gameState.roomData;
             if (data && data.teams && data.teams[teamId]) {
                 var team = data.teams[teamId];
@@ -1089,7 +1123,7 @@
                 } else {
                     window.renderHostScreen();
                 }
-                window.showToast("🎉 " + team.name + "에게 " + loanAttempt + "회차 대출금 +" + approvedAmount + " pt가 지급되었습니다! (대출 상환금: " + debtForThisLoan + " pt / 총 부채: " + team.debt + " pt)");
+                window.showToast("🎉 " + team.name + "에게 " + loanAttempt + "회차 대출금 +" + approvedAmount + " pt가 지급되었습니다! (총 부채: " + team.debt + " pt)");
             }
         };
 
@@ -1143,7 +1177,6 @@
                         t.points += t.currentBid;
                     } else {
                         t.points = Math.max(0, t.points - t.currentBid);
-                        // 오답 시, 해당 문항 ID를 wrongQuestionIds에 기록하여 대출 복습 문제로 활용
                         if (!t.wrongQuestionIds) t.wrongQuestionIds = [];
                         if (!t.wrongQuestionIds.includes(q.id)) {
                             t.wrongQuestionIds.push(q.id);
@@ -1364,7 +1397,7 @@
                                 </div>
                                 <hr class="border-slate-800 my-2">
                                 <p class="text-xs text-slate-400 leading-relaxed">
-                                    💡 선생님이 스크린 화면에서 <span class="text-amber-300 font-bold">'식물과 에너지 문제 투자 시작하기'</span>를 누르면 첫 번째 문제가 나타납니다.
+                                    💡 선생님이 스크린 화면에서 <span class="text-amber-300 font-bold">'힘의 작용 문제 투자 시작하기'</span>를 누르면 첫 번째 문제가 나타납니다.
                                 </p>
                             </div>
 
@@ -1623,19 +1656,16 @@
             var ratePercent = 100 + (nextAttempt * 10);
             var rateMultiplier = 1.0 + (nextAttempt * 0.1);
 
-            // 오답 노트 연동 로직
             var wrongIds = myTeam && myTeam.wrongQuestionIds ? myTeam.wrongQuestionIds : [];
             var eligibleQuestions = window.questionBank.filter(function(q) {
                 return wrongIds.includes(q.id);
             });
 
-            // 만약 기록된 오답이 없을 경우 (에러 상황 방지) 현재 문제로 폴백
             if (eligibleQuestions.length === 0) {
                 var fallbackIdx = data ? data.currentQuestionIdx : 0;
                 eligibleQuestions = [window.questionBank[fallbackIdx]];
             }
 
-            // 오답 중에서 랜덤 출제
             window.currentRescueQuestion = eligibleQuestions[Math.floor(Math.random() * eligibleQuestions.length)];
             
             var statementElem = document.getElementById('rescueQuizStatement');
@@ -1648,7 +1678,6 @@
             if (titleElem) titleElem.innerText = "대출 심사 복습 퀴즈 (" + nextAttempt + "회차)";
             if (rateBadge) rateBadge.innerText = ratePercent + "%";
             
-            // --- 평균 연동제: 학급 평균 자본금 계산 및 대출 상한선 설정 로직 ---
             var teamsList = data ? Object.values(data.teams) : [];
             var totalPoints = 0;
             var teamCount = teamsList.length;
@@ -1658,10 +1687,8 @@
             });
             
             var averagePoints = teamCount > 0 ? Math.floor(totalPoints / teamCount) : 50;
-            // 10단위로 맞추기 (내림)
             var maxLoanLimit = Math.floor(averagePoints / 10) * 10;
             
-            // 평균이 너무 낮더라도 최소 50pt는 대출받을 수 있도록 최저 한도 보장
             if (maxLoanLimit < 50) {
                 maxLoanLimit = 50;
             }
@@ -1681,7 +1708,6 @@
                 loanRateSubtitle.innerHTML = `희망 대출 액수를 선택하고 이전에 틀린 퀴즈를 맞추세요!<br><span class="text-amber-300 font-bold">(현재 학급 평균 자본금: ${averagePoints}pt → 최대 대출 한도: ${maxLoanLimit}pt)</span>`;
             }
 
-            // 문제 타입(OX/객관식)에 따른 버튼 동적 렌더링
             var buttonsContainer = document.getElementById('rescueQuizButtonsContainer');
             var buttonsHtml = '';
 
@@ -1743,7 +1769,6 @@
             if (!window.currentRescueQuestion) return;
 
             var isCorrect = false;
-            // 타입별 정답 검증 로직 통일
             if (window.currentRescueQuestion.type === 'ox') {
                 isCorrect = (answer === window.currentRescueQuestion.answer);
             } else if (window.currentRescueQuestion.type === 'choice') {
@@ -1923,8 +1948,8 @@
                         <div class="inline-block bg-amber-500/20 text-amber-400 p-3 rounded-2xl border border-amber-400/30">
                             <i class="fa-solid fa-trophy text-4xl"></i>
                         </div>
-                        <h2 class="text-3xl font-black font-title text-amber-300">최종 투자 결과 & 식물 디브리핑</h2>
-                        <p class="text-sm text-slate-300">중학교 2학년 과학 [식물과 에너지] 단원 모둠 탐구 완수를 축하합니다!</p>
+                        <h2 class="text-3xl font-black font-title text-amber-300">최종 투자 결과 & 힘의 작용 디브리핑</h2>
+                        <p class="text-sm text-slate-300">중학교 과학 [5. 힘의 작용 - 중력·탄성력·마찰력·부력] 모둠 탐구 완수를 축하합니다!</p>
                     </div>
 
                     <div class="glass-panel rounded-3xl p-6 space-y-4">
